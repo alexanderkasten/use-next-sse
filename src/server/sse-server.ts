@@ -27,17 +27,20 @@ export class SSEConnection {
 
   async initialize() {
     await this.initializePromise;
+    console.log('SSE connection initialized');
   }
 
   send(data: any, event?: string) {
     if (!this.controller) {
       throw new Error('SSEConnection not initialized. Call initialize() first.');
     }
+    console.log('Sending SSE message', data, event);
     const message = `data: ${JSON.stringify(data)}\n${event ? `event: ${event}\n` : ''}id: ${Date.now()}\n\n`;
     this.controller.enqueue(this.encoder.encode(message));
   }
 
   close() {
+    console.log('Closing SSE connection called');
     if (!this.controller) {
       throw new Error('SSEConnection not initialized. Call initialize() first.');
     }
@@ -47,11 +50,19 @@ export class SSEConnection {
   getResponse() {
     const stream = new ReadableStream({
       start: (controller) => {
+        console.log('SSE consnection started', this.controller);
         this.controller = controller;
+        console.log('SSE connection controller', this.controller);
         if (this.resolveInitialize) {
           this.resolveInitialize();
           this.resolveInitialize = null;
         }
+      },
+      pull(controller) {
+          console.log('SSE connection pull');
+      },
+      cancel() {
+        console.log('SSE connection canceled');
       },
     });
 
