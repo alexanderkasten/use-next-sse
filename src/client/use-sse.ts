@@ -53,6 +53,10 @@ export function useSSE(url: string, eventName?: string, options: SSEOptions = {}
       setTimeout(connect, reconnectInterval);
     };
 
+    eventSource.onopen = () => {
+      console.log('SSE connection opened');
+    };
+
     eventSourceRef.current = eventSource;
   }, [url, eventName, options, maxReconnectAttempts, reconnectInterval]);
 
