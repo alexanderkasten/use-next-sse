@@ -7,85 +7,109 @@ export type SSEConfig = {
 
 type SSEConfigStrict = Required<SSEConfig>;
 
+
+interface ClientInfo {
+  id: string;
+  lastEventId: number;
+}
+
+const clients = new Map<string, ClientInfo>();
+
 export class SSEConnection {
   private encoder: TextEncoder;
-  private controller!: ReadableStreamDefaultController<any>;
-  private initializePromise: Promise<void>;
-  private resolveInitialize: (() => void) | null = null;
-  private config: SSEConfigStrict;
+  private controller: ReadableStreamDefaultController<any> | null = null;
+  private stream: ReadableStream;
+  private config: SSEConfig;
+  private clientId: string;
+  public eventId: number = 0;
+  private isClosed = false;
 
-  constructor(config: SSEConfig = {}) {
+  constructor(clientId?: string, lastEventId?: number, config: SSEConfig = {}) {
     this.encoder = new TextEncoder();
-    this.initializePromise = new Promise((resolve) => {
-      this.resolveInitialize = resolve;
-    });
     this.config = {
       reconnectInterval: config.reconnectInterval || 1000,
       maxReconnectAttempts: config.maxReconnectAttempts || 5,
     };
-  }
+    
+    if (clientId && clients.has(clientId)) {
+      this.clientId = clientId;
+      this.eventId = clients.get(clientId)!.lastEventId;
+    } else {
+      this.clientId = clientId || Math.random().toString(36).substring(2, 15);
+      this.eventId = lastEventId || 0;
+      clients.set(this.clientId, { id: this.clientId, lastEventId: this.eventId });
+    }
 
-  async initialize() {
-    await this.initializePromise;
-    console.log('SSE connection initialized');
+    this.stream = new ReadableStream({
+      start: (controller) => {
+        this.controller = controller;
+        
+        // Send the client ID as the first message only for new clients
+        if (!clientId || !clients.has(clientId)) {
+          this.send({ clientId: this.clientId }, 'init');
+        }
+      },
+      cancel: () => {
+        this.isClosed = true;
+        console.log('SSEConnection canceled');
+        clients.delete(this.clientId);
+      },
+    });
+
+    // this.stream.getReader().closed.then(() => {
+    //   console.log('SSEConnection closed');
+    //   this.isClosed = true;
+    //   clients.delete(this.clientId);
+    // });
   }
 
   send(data: any, event?: string) {
     if (!this.controller) {
-      throw new Error('SSEConnection not initialized. Call initialize() first.');
+      console.warn('Attempted to send on a closed SSEConnection');
+      return;
     }
-    console.log('Sending SSE message', data, event);
-    const message = `data: ${JSON.stringify(data)}\n${event ? `event: ${event}\n` : ''}id: ${Date.now()}\n\n`;
+    this.eventId++;
+    const message = `id: ${this.eventId}\ndata: ${JSON.stringify(data)}\n${event ? `event: ${event}\n` : ''}\n`;
     this.controller.enqueue(this.encoder.encode(message));
+    clients.get(this.clientId)!.lastEventId = this.eventId;
   }
 
   close() {
-    console.log('Closing SSE connection called');
-    if (!this.controller) {
-      throw new Error('SSEConnection not initialized. Call initialize() first.');
+    if (this.controller && !this.isClosed) {
+      this.controller.close();
+      this.controller = null;
+      this.isClosed = true;
     }
-    this.controller.close();
+    clients.delete(this.clientId);
   }
 
   getResponse() {
-    const stream = new ReadableStream({
-      start: (controller) => {
-        console.log('SSE consnection started', this.controller);
-        this.controller = controller;
-        console.log('SSE connection controller', this.controller);
-        if (this.resolveInitialize) {
-          this.resolveInitialize();
-          this.resolveInitialize = null;
-        }
-      },
-      pull(controller) {
-          console.log('SSE connection pull');
-      },
-      cancel() {
-        console.log('SSE connection canceled');
-      },
-    });
-
-    return new NextResponse(stream, {
+    return new NextResponse(this.stream, {
       headers: {
         'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
         'X-Accel-Buffering': 'no',
-        'retry': this.config.reconnectInterval.toString(),
       },
     });
   }
+
+  static getClientInfo(clientId: string): ClientInfo | undefined {
+    return clients.get(clientId);
+  }
 }
 
-export function createSSEHandler(handler: (sse: SSEConnection) => Promise<void>, config?: SSEConfig) {
-  return async () => {
-    const sse = new SSEConnection(config);
+export function createSSEHandler(handler: (sse: SSEConnection, lastEventId?: number) => Promise<void>, config?: SSEConfig) {
+  return async (req: Request) => {
+    const url = new URL(req.url);
+    const clientId = url.searchParams.get('clientId');
+    const lastEventId = url.searchParams.get('lastEventId');
+    
+    const sse = new SSEConnection(clientId || undefined, lastEventId ? parseInt(lastEventId, 10) : undefined, config);
+
     const response = sse.getResponse();
-
-    await sse.initialize();
-
-    handler(sse).catch((error) => {
+    
+    handler(sse, sse.eventId ?? 0).catch((error) => {
       console.error('SSE Handler Error:', error);
       sse.close();
     });
@@ -93,4 +117,3 @@ export function createSSEHandler(handler: (sse: SSEConnection) => Promise<void>,
     return response;
   };
 }
-
