@@ -1,6 +1,6 @@
 {
   "name": "use-next-sse",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A lightweight Server-Sent Events (SSE) library for Next.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
