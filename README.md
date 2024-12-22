@@ -16,7 +16,7 @@ Create a new file `app/api/sse/route.ts` with the following content:
 
 ```typescript
 import { createSSEHandler } from 'use-next-sse';
-
+export const dynamic = 'force-dynamic';
 export const GET = createSSEHandler(async (sse) => {
   let count = 0;
   const interval = setInterval(() => {

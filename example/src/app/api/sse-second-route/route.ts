@@ -1,7 +1,6 @@
 import { createSSEHandler } from 'use-next-sse';
 export const dynamic = 'force-dynamic';
 
-
 export const GET = createSSEHandler((send, close) => {
   let count = 0
   const interval = setInterval(() => {

@@ -1,23 +1,17 @@
-import Counter from "./components/Counter";
-import Counter2 from "./components/Counter2";
-import StreamResponse from "./components/StreamResponse";
+import Link from "next/link";
 import styles from "./page.module.css";
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-          <li>
-            {/* <Counter /> */}
-            {/* <StreamResponse /> */}
-            <Counter2 />
-          </li>
-        </ol>
+        <nav>
+          <ul>
+            <li><Link href="/minimal">Exmaple 1</Link></li>
+            <li><Link href="/normal">Example 2</Link></li>
+            <li><Link href="/advanced">Example 3</Link></li>
+          </ul>
+        </nav>
       </main>
     </div>
   );
