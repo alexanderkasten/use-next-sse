@@ -17,13 +17,13 @@ Create a new file `app/api/sse/route.ts` with the following content:
 ```typescript
 import { createSSEHandler } from 'use-next-sse';
 export const dynamic = 'force-dynamic';
-export const GET = createSSEHandler(async (sse) => {
+export const GET = createSSEHandler(async (send, close) => {
   let count = 0;
   const interval = setInterval(() => {
-    sse.send({ count: count++ }, 'counter');
+    send({ count: count++ }, 'counter');
     if (count > 10) {
       clearInterval(interval);
-      sse.close();
+      close();
     }
   }, 1000);
 });
@@ -39,7 +39,7 @@ Create a new file `app/components/Counter.tsx` with the following content:
 import { useSSE } from 'use-next-sse';
 
 export default function Counter() {
-  const { data, error } = useSSE('/api/sse', 'counter');
+  const { data, error } = useSSE({url: '/api/sse', eventName: 'counter'});
 
   if (error) return <div>Error: {error.message}</div>;
   if (!data) return <div>Loading...</div>;
