@@ -12,7 +12,7 @@ export const GET = createSSEHandler(async (send, close) => {
       send({ count: count }, 'odd');
     }
     count++;
-    if (count > 10) {
+    if (count > 100) {
       clearInterval(interval);
       close();
     }

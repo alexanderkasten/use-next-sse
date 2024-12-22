@@ -6,9 +6,9 @@ import { useSSE } from 'use-next-sse';
 export default function SSEExample() {
   const [eventType, setEventType] = useState<'all' | 'even' | 'odd'>('all');
 
-  const { data: allData, error: allError } = useSSE({ url: '/api/sse' });
-  const { data: evenData, error: evenError } = useSSE({ url: '/api/sse', eventName: 'even' });
-  const { data: oddData, error: oddError } = useSSE({ url: '/api/sse', eventName: 'odd' });
+  const { data: allData, error: allError } = useSSE({ url: '/api/even-odd' });
+  const { data: evenData, error: evenError } = useSSE({ url: '/api/even-odd', eventName: 'even' });
+  const { data: oddData, error: oddError } = useSSE({ url: '/api/even-odd', eventName: 'odd' });
 
   const renderData = () => {
     switch (eventType) {

@@ -7,9 +7,9 @@ export default function Home() {
       <main className={styles.main}>
         <nav>
           <ul>
-            <li><Link href="/minimal">Exmaple 1</Link></li>
-            <li><Link href="/normal">Example 2</Link></li>
-            <li><Link href="/advanced">Example 3</Link></li>
+            <li><Link href="/minimal">Minimal</Link></li>
+            <li><Link href="/even-odd">Even Odd</Link></li>
+            <li><Link href="/advanced">Disconnect</Link></li>
           </ul>
         </nav>
       </main>
