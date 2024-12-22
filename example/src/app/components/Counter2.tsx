@@ -116,7 +116,7 @@ export default function SSEExample() {
   })
 
   const milestone = useSSE<MilestoneData>({
-    url: '/api/sse2',
+    url: '/api/sse3',
     eventName: 'milestone'
   })
 
