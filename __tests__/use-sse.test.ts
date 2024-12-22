@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useSSE } from '../lib/use-sse';
+import { useSSE } from '../src/client/use-sse';
 
 describe('useSSE', () => {
   let mockEventSource: any;
@@ -15,17 +15,17 @@ describe('useSSE', () => {
   });
 
   test('initializes EventSource with the provided URL', () => {
-    renderHook(() => useSSE('http://test.com/sse'));
-    expect(EventSource).toHaveBeenCalledWith('http://test.com/sse');
+    renderHook(() => useSSE({url: 'https://example.com/sse'}));
+    expect(EventSource).toHaveBeenCalledWith({url: 'https://example.com/sse'});
   });
 
   test('listens for specific event when eventName is provided', () => {
-    renderHook(() => useSSE('http://test.com/sse', 'testEvent'));
+    renderHook(() => useSSE({url: 'https://example.com/sse', eventName: 'testEvent'}));
     expect(mockEventSource.addEventListener).toHaveBeenCalledWith('testEvent', expect.any(Function));
   });
 
   test('updates data when message is received', async () => {
-    const { result } = renderHook(() => useSSE('http://test.com/sse'));
+    const { result } = renderHook(() => useSSE({url: 'https://example.com/sse'}));
 
     await act(async () => {
       const messageHandler = mockEventSource.addEventListener.mock.calls[0][1];
@@ -36,7 +36,7 @@ describe('useSSE', () => {
   });
 
   test('sets error when parsing fails', async () => {
-    const { result } = renderHook(() => useSSE('http://test.com/sse'));
+    const { result } = renderHook(() => useSSE({url: 'https://example.com/sse'}));
 
     await act(async () => {
       const messageHandler = mockEventSource.addEventListener.mock.calls[0][1];
@@ -48,7 +48,7 @@ describe('useSSE', () => {
   });
 
   test('closes EventSource on unmount', () => {
-    const { unmount } = renderHook(() => useSSE('http://test.com/sse'));
+    const { unmount } = renderHook(() => useSSE({url: 'https://example.com/sse'}));
     unmount();
     expect(mockEventSource.close).toHaveBeenCalled();
   });
