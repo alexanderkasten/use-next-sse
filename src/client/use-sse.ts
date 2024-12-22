@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react'
+import { sseManager } from './sse-manager';
 
 export interface SSEOptions {
   url: string
@@ -12,23 +13,17 @@ interface SSEResult<T> {
   lastEventId: string | null
   close: () => void
 }
-
 export function useSSE<T = any>({ url, eventName = 'message' }: SSEOptions): SSEResult<T> {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
-  const [eventSource, setEventSource] = useState<EventSource | null>(null)
 
   const close = useCallback(() => {
-    if (eventSource) {
-      eventSource.close()
-      setEventSource(null)
-    }
-  }, [eventSource])
+    sseManager.releaseConnection(url)
+  }, [url])
 
   useEffect(() => {
-    const source = new EventSource(url)
-    setEventSource(source)
+    const source = sseManager.getConnection(url)
 
     const handleMessage = (event: MessageEvent) => {
       try {
@@ -41,19 +36,20 @@ export function useSSE<T = any>({ url, eventName = 'message' }: SSEOptions): SSE
       }
     }
 
-    source.addEventListener(eventName, handleMessage)
+    sseManager.addEventListener(url, eventName, handleMessage)
 
-    source.onerror = (event) => {
+    const handleError = (event: Event) => {
       setError(new Error('EventSource failed'))
-      source.close()
     }
 
+    source.addEventListener('error', handleError)
+
     return () => {
-      source.removeEventListener(eventName, handleMessage)
-      source.close()
+      sseManager.removeEventListener(url, eventName, handleMessage)
+      source.removeEventListener('error', handleError)
+      sseManager.releaseConnection(url)
     }
   }, [url, eventName])
 
   return { data, error, lastEventId, close }
 }
-
