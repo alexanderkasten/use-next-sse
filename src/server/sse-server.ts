@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server'
 
+type SendFunction = (data: any, eventName?: string) => void
+
 type SSECallback = (
-  send: (data: any) => void, 
+  send: SendFunction, 
   close: () => void
 ) => void | Promise<void> | (() => void)
 
@@ -13,9 +15,14 @@ export function createSSEHandler(callback: SSECallback) {
 
     const stream = new ReadableStream({
       start(controller) {
-        function send(data: any) {
+        const send: SendFunction = (data: any, eventName?: string) => {
           if (!isClosed) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+            let message = ''
+            if (eventName) {
+              message += `event: ${eventName}\n`
+            }
+            message += `data: ${JSON.stringify(data)}\n\n`
+            controller.enqueue(encoder.encode(message))
           }
         }
 
