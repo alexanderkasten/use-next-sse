@@ -12,17 +12,19 @@ export function createSSEHandler(callback: SSECallback) {
     const encoder = new TextEncoder()
     let isClosed = false
     let cleanup: (() => void) | undefined
+    let messageId = 0
 
     const stream = new ReadableStream({
       start(controller) {
         const send: SendFunction = (data: any, eventName?: string) => {
           if (!isClosed) {
-            let message = ''
+            let message = `id: ${messageId}\n`
             if (eventName) {
               message += `event: ${eventName}\n`
             }
             message += `data: ${JSON.stringify(data)}\n\n`
             controller.enqueue(encoder.encode(message))
+            messageId++
           }
         }
 
