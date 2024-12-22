@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { SSEConfig } from '../index';
+// import { SSEConfig } from '../index';
 
 
 
-export interface SSEOptions extends SSEConfig {
+export interface SSEOptions {
+  reconnectInterval?: number;
+  maxReconnectAttempts?: number;
   onMessage?: (event: MessageEvent) => void;
   onError?: (error: Error) => void;
 }
