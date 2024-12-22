@@ -9,7 +9,7 @@ type SSEConfigStrict = Required<SSEConfig>;
 
 
 interface ClientInfo {
-  id: string;
+  connection: SSEConnection;
   lastEventId: number;
 }
 
@@ -20,47 +20,25 @@ export class SSEConnection {
   private controller: ReadableStreamDefaultController<any> | null = null;
   private stream: ReadableStream;
   private config: SSEConfig;
-  private clientId: string;
-  public eventId: number = 0;
-  private isClosed = false;
+  public clientId: string;
+  private eventId: number = 0;
 
-  constructor(clientId?: string, lastEventId?: number, config: SSEConfig = {}) {
+  constructor(clientId: string, config: SSEConfig = {}) {
     this.encoder = new TextEncoder();
     this.config = {
       reconnectInterval: config.reconnectInterval || 1000,
       maxReconnectAttempts: config.maxReconnectAttempts || 5,
     };
-    
-    if (clientId && clients.has(clientId)) {
-      this.clientId = clientId;
-      this.eventId = clients.get(clientId)!.lastEventId;
-    } else {
-      this.clientId = clientId || Math.random().toString(36).substring(2, 15);
-      this.eventId = lastEventId || 0;
-      clients.set(this.clientId, { id: this.clientId, lastEventId: this.eventId });
-    }
+    this.clientId = clientId;
 
     this.stream = new ReadableStream({
       start: (controller) => {
         this.controller = controller;
-        
-        // Send the client ID as the first message only for new clients
-        if (!clientId || !clients.has(clientId)) {
-          this.send({ clientId: this.clientId }, 'init');
-        }
       },
       cancel: () => {
-        this.isClosed = true;
-        console.log('SSEConnection canceled');
         clients.delete(this.clientId);
       },
     });
-
-    // this.stream.getReader().closed.then(() => {
-    //   console.log('SSEConnection closed');
-    //   this.isClosed = true;
-    //   clients.delete(this.clientId);
-    // });
   }
 
   send(data: any, event?: string) {
@@ -71,14 +49,15 @@ export class SSEConnection {
     this.eventId++;
     const message = `id: ${this.eventId}\ndata: ${JSON.stringify(data)}\n${event ? `event: ${event}\n` : ''}\n`;
     this.controller.enqueue(this.encoder.encode(message));
-    clients.get(this.clientId)!.lastEventId = this.eventId;
+    if (clients.has(this.clientId)) {
+      clients.get(this.clientId)!.lastEventId = this.eventId;
+    }
   }
 
   close() {
-    if (this.controller && !this.isClosed) {
+    if (this.controller) {
       this.controller.close();
       this.controller = null;
-      this.isClosed = true;
     }
     clients.delete(this.clientId);
   }
@@ -93,27 +72,32 @@ export class SSEConnection {
       },
     });
   }
-
-  static getClientInfo(clientId: string): ClientInfo | undefined {
-    return clients.get(clientId);
-  }
 }
 
 export function createSSEHandler(handler: (sse: SSEConnection, lastEventId?: number) => Promise<void>, config?: SSEConfig) {
   return async (req: Request) => {
     const url = new URL(req.url);
-    const clientId = url.searchParams.get('clientId');
+    const clientId = url.searchParams.get('clientId') || Math.random().toString(36).substring(2, 15);
     const lastEventId = url.searchParams.get('lastEventId');
-    
-    const sse = new SSEConnection(clientId || undefined, lastEventId ? parseInt(lastEventId, 10) : undefined, config);
+
+    let sse: SSEConnection;
+    if (clients.has(clientId)) {
+      sse = clients.get(clientId)!.connection;
+    } else {
+      sse = new SSEConnection(clientId, config);
+      clients.set(clientId, { connection: sse, lastEventId: 0 });
+      // Send initial client ID for new connections
+      sse.send({ clientId }, 'init');
+    }
 
     const response = sse.getResponse();
     
-    handler(sse, sse.eventId ?? 0).catch((error) => {
+    handler(sse, lastEventId ? parseInt(lastEventId, 10) : undefined).catch((error) => {
       console.error('SSE Handler Error:', error);
       sse.close();
     });
 
+    console.log('return response stream')
     return response;
   };
 }
