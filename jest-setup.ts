@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
-import React from 'react';
+// import React from 'react';
 
-global.React = React; // this also works for other globally available libraries
+// global.React = React; // this also works for other globally available libraries
+// (global as any).useState = React.useState;
