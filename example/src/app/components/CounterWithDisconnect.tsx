@@ -2,7 +2,7 @@
 
 import { useSSE } from 'use-next-sse';
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 
 interface CounterData {
   count: number
@@ -46,7 +46,7 @@ export default function SSEExample() {
   }
 
   return (
-    <div className="p-4">
+    <div className="p-4" data-testid='test'>
       <h1 className="text-4xl font-bold mb-4">SSE Example with useSSE Hook</h1>
       {!isConnected ? (
         <button
@@ -76,7 +76,7 @@ export default function SSEExample() {
           {milestone.data && (
             <div>
               <h2 className="text-2xl font-semibold">Milestone</h2>
-              <p className="text-lg text-green-600">{milestone.data.message}</p>
+              <p className="text-lg text-green-600" data-testid="milestone-message">{milestone.data.message}</p>
               <p className="text-sm text-gray-600">Last Event ID: {milestone.lastEventId}</p>
             </div>
           )}
@@ -84,7 +84,7 @@ export default function SSEExample() {
           {closeMessage.data && (
             <div>
               <h2 className="text-2xl font-semibold">Close Message</h2>
-              <p className="text-lg text-red-600">{closeMessage.data.message}</p>
+              <p className="text-lg text-red-600" data-testid="close-message">{closeMessage.data.message}</p>
               <p className="text-sm text-gray-600">Last Event ID: {closeMessage.lastEventId}</p>
             </div>
           )}
