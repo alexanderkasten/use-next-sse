@@ -7,13 +7,13 @@ export const GET = createSSEHandler((send, close) => {
     send({ count: count++ }, 'counter')
 
     if (count % 5 === 0) {
-      send({ message: `Meilenstein erreicht: ${count}` }, 'milestone')
+      send({ message: `Milestone reached: ${count}` }, 'milestone');
     }
 
-    // Beende die Verbindung nach 60 Sekunden (optional)
+    // End the connection after 60 seconds (optional)
     if (count >= 60) {
       clearInterval(interval)
-      send({ message: 'SSE-Verbindung wird geschlossen' }, 'close')
+      send({ message: 'SSE-Connection closing' }, 'close')
       close()
     }
   }, 1000)
