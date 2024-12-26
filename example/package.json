@@ -7,7 +7,7 @@
     "build": "npm run build-lib && next build",
     "start": "next start",
     "lint": "next lint",
-    "build-lib": "npm run build --prefix ../"
+    "build-lib": "npm ci --prefix ../ && npm run build --prefix ../"
   },
   "dependencies": {
     "react": "^18.0.0",
