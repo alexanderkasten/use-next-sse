@@ -10,7 +10,6 @@ const StreamResponse: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await fetch('/api/stream');
-        console.log('response', response);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

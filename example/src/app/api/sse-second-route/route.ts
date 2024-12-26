@@ -21,7 +21,7 @@ export const GET = createSSEHandler((send, close) => {
   // Rückgabe der Aufräumfunktion
   return () => {
     clearInterval(interval)
-    console.log('SSE-Verbindung wurde geschlossen und aufgeräumt.')
+    console.log('SSE connection has been closed and cleaned up.')
   }
 })
 

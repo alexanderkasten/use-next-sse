@@ -8,7 +8,6 @@ function iteratorToStream(iterator: any) {
   return new ReadableStream({
     async pull(controller) {
       const { value, done } = await iterator.next()
-      console.log('value', value, done)
       if (done) {
         controller.close()
       } else {
@@ -35,11 +34,8 @@ async function* makeIterator() {
 }
 
 export async function GET() {
-  console.log('GET stream')
   const iterator = makeIterator();
-  console.log('iterator', iterator)
   const stream = iteratorToStream(iterator)
 
-  console.log('stream', stream);
   return new NextResponse(stream)
 }
