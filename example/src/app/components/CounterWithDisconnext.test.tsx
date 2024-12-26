@@ -30,7 +30,6 @@ describe('SSEExample', () => {
     mockUseSSE.mockReturnValue({ data: { count: 42 }, error: null, close: jest.fn() });
     render(<SSEExample />);
     fireEvent.click(screen.getByText('Connect to SSE'));
-    screen.debug(screen.getByTestId('test'));
     expect(screen.getByText('42')).toBeInTheDocument();
   });
 
