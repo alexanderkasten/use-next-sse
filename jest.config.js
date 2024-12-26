@@ -3,9 +3,10 @@ module.exports = {
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|js)$': 'ts-jest',
+    '^.+\\.tsx?$': 'babel-jest',
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
-  setupFilesAfterEnv: ['@testing-library/jest-dom'],
+  setupFilesAfterEnv: ['@testing-library/jest-dom', '@testing-library/react', './jest-setup.ts'],
 };
 
