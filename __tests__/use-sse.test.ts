@@ -16,7 +16,7 @@ describe('useSSE', () => {
 
   test('initializes EventSource with the provided URL', () => {
     renderHook(() => useSSE({url: 'https://example.com/sse'}));
-    expect(EventSource).toHaveBeenCalledWith({url: 'https://example.com/sse'});
+    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse');
   });
 
   test('listens for specific event when eventName is provided', () => {
@@ -44,7 +44,7 @@ describe('useSSE', () => {
     });
 
     expect(result.current.error).toBeInstanceOf(Error);
-    expect(result.current.error?.message).toContain('Failed to parse SSE data');
+    expect(result.current.error?.message).toContain('Failed to parse event data');
   });
 
   test('closes EventSource on unmount', () => {
