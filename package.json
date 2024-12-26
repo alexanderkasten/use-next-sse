@@ -1,7 +1,7 @@
 {
   "name": "use-next-sse",
   "version": "0.1.0",
-  "description": "A lightweight Server-Sent Events (SSE) library for Next.js",
+  "description": "A lightweight Server-Sent Events (SSE) library for Next.js, enabling real-time, unidirectional data streaming from server to client",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,7 +14,15 @@
     "nextjs",
     "sse",
     "server-sent-events",
-    "react"
+    "react",
+    "streaming",
+    "real-time",
+    "send",
+    "events",
+    "server",
+    "client",
+    "unidirectional",
+    "data"
   ],
   "author": "Alexander Kasten",
   "license": "MIT",
