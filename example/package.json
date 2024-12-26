@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "npm run build-lib && next dev",
+    "build": "npm run build-lib && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build-lib": "npm run build --prefix ../"
   },
   "dependencies": {
     "react": "^18.0.0",
