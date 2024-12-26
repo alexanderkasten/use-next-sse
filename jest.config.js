@@ -6,6 +6,6 @@ module.exports = {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[tj]s?(x)'],
-  setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
+  setupFilesAfterEnv: ['@testing-library/jest-dom'],
 };
 
