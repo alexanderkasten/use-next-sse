@@ -2,10 +2,16 @@
   "name": "use-next-sse",
   "version": "0.1.0",
   "description": "A lightweight Server-Sent Events (SSE) library for Next.js, enabling real-time, unidirectional data streaming from server to client",
-  "main": "dist/index.js",
+  "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    "require": "./dist/cjs/index.js",
+    "import": "./dist/index.js",
+    "types": "./dist/index.d.ts"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run build:cjs",
+    "build:cjs": "tsc --module commonjs --outdir dist/cjs",
     "watch": "tsc -w",
     "test": "jest",
     "prepublishOnly": "npm run build"
