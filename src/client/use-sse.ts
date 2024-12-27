@@ -13,6 +13,23 @@ interface SSEResult<T> {
   error: Error | null
   lastEventId: string | null
   close: () => void
+  /**
+   * The connection state of the SSE.
+   * @type {'connecting' | 'open' | 'closed'}
+   * @default 'connecting'
+   * @example
+   * const { connectionState } = useSSE({ url: '/api/sse' });
+   * if (connectionState === 'open') {
+   *  console.log('Connected to SSE');
+   * }
+   * if (connectionState === 'closed') {
+   * console.log('Disconnected from SSE');
+   * }
+   * if (connectionState === 'connecting') {
+   * console.log('Connecting to SSE');
+   * }
+   */
+  connectionState: 'connecting' | 'open' | 'closed'
 }
 
 /**
