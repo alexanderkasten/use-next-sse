@@ -6,6 +6,7 @@ import { sseManager } from './sse-manager';
 export interface SSEOptions {
   url: string
   eventName?: string
+  reconnect?: boolean | { interval?: number, maxAttempts?: number }
 }
 
 interface SSEResult<T> {
@@ -22,6 +23,9 @@ interface SSEResult<T> {
  * @param {SSEOptions} options - The options for the SSE connection.
  * @param {string} options.url - The URL to connect to for SSE.
  * @param {string} [options.eventName='message'] - The name of the event to listen for.
+ * @param {boolean | { interval?: number, maxAttempts?: number }} [options.reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
+ * @param {number} [options.reconnect.interval] - The interval in milliseconds to wait before reconnecting. Default `1000`ms.
+ * @param {number} [options.reconnect.maxAttempts] - The maximum number of reconnection attempts. Default `5`.
  * @returns {SSEResult<T>} The result of the SSE connection, including data, error, last event ID, and a close function.
  *
  * @example
