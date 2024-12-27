@@ -1,6 +1,5 @@
-
 'use client';
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { sseManager } from './sse-manager';
 
 export interface SSEOptions {
@@ -37,43 +36,70 @@ interface SSEResult<T> {
  *   }
  * }, [data]);
  */
-export function useSSE<T = any>({ url, eventName = 'message' }: SSEOptions): SSEResult<T> {
+export function useSSE<T = any>({ url, eventName = 'message', reconnect = false }: SSEOptions): SSEResult<T> {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [lastEventId, setLastEventId] = useState<string | null>(null)
+  const reconnectAttempts = useRef(0)
+  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null)
 
   const close = useCallback(() => {
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current)
+    }
     sseManager.releaseConnection(url)
   }, [url])
 
   useEffect(() => {
-    const source = sseManager.getConnection(url)
+    const connect = () => {
+      const source = sseManager.getConnection(url)
 
-    const handleMessage = (event: MessageEvent) => {
-      try {
-        const parsedData = JSON.parse(event.data)
-        setData(parsedData)
-        setLastEventId(event.lastEventId)
-        setError(null)
-      } catch (err) {
-        setError(new Error('Failed to parse event data'))
+      const handleMessage = (event: MessageEvent) => {
+        try {
+          const parsedData = JSON.parse(event.data)
+          setData(parsedData)
+          setLastEventId(event.lastEventId)
+          setError(null)
+        } catch (err) {
+          setError(new Error('Failed to parse event data'))
+        }
+      }
+
+      sseManager.addEventListener(url, eventName, handleMessage)
+
+      const handleError = (event: Event) => {
+        setError(new Error('EventSource failed'))
+        if (reconnect) {
+          const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000
+          const maxAttempts = typeof reconnect === 'object' && reconnect.maxAttempts ? reconnect.maxAttempts : 5
+          if (reconnectAttempts.current < maxAttempts) {
+            reconnectAttempts.current += 1
+            reconnectTimeout.current = setTimeout(() => {
+              sseManager.releaseConnection(url)
+              connect()
+            }, interval)
+          }
+        }
+      }
+
+      source.addEventListener('error', handleError)
+
+      return () => {
+        sseManager.removeEventListener(url, eventName, handleMessage)
+        source.removeEventListener('error', handleError)
+        sseManager.releaseConnection(url)
       }
     }
 
-    sseManager.addEventListener(url, eventName, handleMessage)
-
-    const handleError = (event: Event) => {
-      setError(new Error('EventSource failed'))
-    }
-
-    source.addEventListener('error', handleError)
+    const cleanup = connect();
 
     return () => {
-      sseManager.removeEventListener(url, eventName, handleMessage)
-      source.removeEventListener('error', handleError)
-      sseManager.releaseConnection(url)
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current)
+      }
+      cleanup();
     }
-  }, [url, eventName])
+  }, [url, eventName, reconnect])
 
   return { data, error, lastEventId, close }
 }
