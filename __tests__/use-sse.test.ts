@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSSE } from '../src/client/use-sse';
 
-describe('useSSE', () => {
+describe.only('useSSE', () => {
   let mockEventSource: any;
 
   beforeEach(() => {
@@ -52,5 +52,16 @@ describe('useSSE', () => {
     unmount();
     expect(mockEventSource.close).toHaveBeenCalled();
   });
-});
 
+  test('sets error when EventSource fails', async () => {
+    const { result } = renderHook(() => useSSE({url: 'https://example.com/sse'}));
+
+    await act(async () => {
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      errorHandler(new Event('error'));
+    });
+
+    expect(result.current.error).toBeInstanceOf(Error);
+    expect(result.current.error?.message).toContain('EventSource failed');
+  });
+});
