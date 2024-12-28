@@ -1,4 +1,6 @@
 # use-next-sse
+[![Node.js Package](https://github.com/alexanderkasten/use-next-sse/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/alexanderkasten/use-next-sse/actions/workflows/npm-publish.yml)
+
 
 use-next-sse is a lightweight and easy-to-use React hook library for implementing Server-Sent Events (SSE) in Next.js applications, enabling real-time, unidirectional data streaming from server to client.
 
