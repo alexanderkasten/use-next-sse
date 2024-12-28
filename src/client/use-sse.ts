@@ -138,7 +138,9 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
           const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000;
           reconnectAttempts.current += 1;
           reconnectTimeout.current = window.setTimeout(() => {
-            destructor();
+            sseManager.removeEventListener(url, eventName, handleMessage);
+            source.removeEventListener('open', handleOpen);
+            source.removeEventListener('error', handleError);
             connect();
           }, interval);
         } else {

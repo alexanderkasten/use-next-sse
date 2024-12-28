@@ -27,6 +27,13 @@ type SSECallback = (
    * close();
    */
   close: () => void,
+  /**
+   * An object containing the last event ID received by the client. Not null if the client has been reconnected.
+   * @property lastEventId - The last event ID from the client.
+   * @example
+   * { lastEventId: '12345' }
+   */
+  context: {lastEventId: string | null}
 ) => void | Promise<void> | (() => void);
 
 /**
@@ -35,6 +42,7 @@ type SSECallback = (
  * @param callback - A function that handles the SSE connection. It takes two arguments: {@link SSECallback}
  *   - `send`: A function to send data to the client. See {@link SendFunction}.
  *   - `close`: A function to close the SSE connection.
+ *   - `context`: An object containing the last event ID received by the client. Not null if the client has been reconnected.
  *   The callback can return a cleanup function that will be called when the connection is closed.
  *
  * @returns A function that handles the SSE request. This function takes a `NextRequest` object as an argument.
@@ -78,7 +86,7 @@ export function createSSEHandler(callback: SSECallback) {
           }
         }
 
-        const result = callback(send, close);
+        const result = callback(send, close, {lastEventId: request.headers.get('Last-Event-ID')});
         if (typeof result === 'function') {
           cleanup = result;
         }
