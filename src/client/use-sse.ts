@@ -82,7 +82,7 @@ interface SSEResult<T> {
  * @param {boolean | { interval?: number, maxAttempts?: number }} [options.reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
  * @param {number} [options.reconnect.interval] - The interval in milliseconds to wait before reconnecting. Default `1000`ms.
  * @param {number} [options.reconnect.maxAttempts] - The maximum number of reconnection attempts. Default `5`.
- * @returns {SSEResult<T>} The result of the SSE connection, including data, error, last event ID, and a close function.
+ * @returns {SSEResult<T>} The result of the SSE connection, including data, error, last event ID, and a close function. {@link SSEResult}
  *
  * @example
  * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse' });
