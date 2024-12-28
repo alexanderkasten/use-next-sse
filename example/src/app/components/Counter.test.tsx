@@ -1,7 +1,8 @@
-import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { useSSE } from 'use-next-sse';
+
+import React from 'react';
 
 import Counter from './Counter';
 

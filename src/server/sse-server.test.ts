@@ -1,5 +1,6 @@
-import { createSSEHandler } from './sse-server';
 import { NextRequest } from 'next/server';
+
+import { createSSEHandler } from './sse-server';
 
 describe('createSSEHandler', () => {
   let mockRequest: NextRequest;

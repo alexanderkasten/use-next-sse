@@ -1,5 +1,7 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react'
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { sseManager } from './sse-manager';
 
 /**
@@ -25,8 +27,8 @@ import { sseManager } from './sse-manager';
  * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', reconnect: { interval: 5000, maxAttempts: 10 } });
  */
 export type SSEOptions = {
-  url: string
-  eventName?: string
+  url: string;
+  eventName?: string;
   /**
    * Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
    * @type {boolean | { interval?: number, maxAttempts?: number }}
@@ -44,31 +46,31 @@ export type SSEOptions = {
    * @example
    * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', eventName: 'test', reconnect: true });
    */
-  reconnect?: boolean | { interval?: number, maxAttempts?: number }
-}
+  reconnect?: boolean | { interval?: number; maxAttempts?: number };
+};
 
 interface SSEResult<T> {
-  data: T | null
-  error: Error | null
-  lastEventId: string | null
-  close: () => void
+  data: T | null;
+  error: Error | null;
+  lastEventId: string | null;
+  close: () => void;
   /**
-    * The connection state of the SSE.
-    * @type {'connecting' | 'open' | 'closed'}
-    * @default 'connecting'
-    * @example
-    * const { connectionState } = useSSE({ url: '/api/sse' });
-    * if (connectionState === 'open') {
-    *  console.log('Connected to SSE');
-    * }
-    * if (connectionState === 'closed') {
-    * console.log('Disconnected from SSE');
-    * }
-    * if (connectionState === 'connecting') {
-    * console.log('Connecting to SSE');
-    * }
-    */
-  connectionState: 'connecting' | 'open' | 'closed'
+   * The connection state of the SSE.
+   * @type {'connecting' | 'open' | 'closed'}
+   * @default 'connecting'
+   * @example
+   * const { connectionState } = useSSE({ url: '/api/sse' });
+   * if (connectionState === 'open') {
+   *  console.log('Connected to SSE');
+   * }
+   * if (connectionState === 'closed') {
+   * console.log('Disconnected from SSE');
+   * }
+   * if (connectionState === 'connecting') {
+   * console.log('Connecting to SSE');
+   * }
+   */
+  connectionState: 'connecting' | 'open' | 'closed';
 }
 
 /**
@@ -93,82 +95,86 @@ interface SSEResult<T> {
  * }, [data]);
  */
 export function useSSE<T = any>({ url, eventName = 'message', reconnect = false }: SSEOptions): SSEResult<T> {
-  const [data, setData] = useState<T | null>(null)
-  const [error, setError] = useState<Error | null>(null)
-  const [lastEventId, setLastEventId] = useState<string | null>(null)
-  const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'closed'>('connecting')
-  const reconnectAttempts = useRef(0)
-  const reconnectTimeout = useRef<number | null>(null)
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastEventId, setLastEventId] = useState<string | null>(null);
+  const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'closed'>('connecting');
+  const reconnectAttempts = useRef(0);
+  const reconnectTimeout = useRef<number | null>(null);
 
   const close = useCallback(() => {
     if (reconnectTimeout.current) {
-      clearTimeout(reconnectTimeout.current)
+      clearTimeout(reconnectTimeout.current);
     }
-    sseManager.releaseConnection(url)
-    setConnectionState('closed')
-  }, [url])
+    sseManager.releaseConnection(url);
+    setConnectionState('closed');
+  }, [url]);
 
   useEffect(() => {
     const connect = () => {
-      setConnectionState('connecting')
-      const source = sseManager.getConnection(url)
+      setConnectionState('connecting');
+      const source = sseManager.getConnection(url);
 
       const handleOpen = () => {
         setConnectionState('open');
         reconnectAttempts.current = 0;
-      }
+      };
 
       const handleMessage = (event: MessageEvent) => {
         try {
-          const parsedData = JSON.parse(event.data)
-          setData(parsedData)
-          setLastEventId(event.lastEventId)
-          setError(null)
+          const parsedData = JSON.parse(event.data);
+          setData(parsedData);
+          setLastEventId(event.lastEventId);
+          setError(null);
         } catch (err) {
-          setError(new Error('Failed to parse event data'))
+          setError(new Error('Failed to parse event data'));
         }
-      }
+      };
 
       const handleError = (event: Event) => {
         setConnectionState('closed');
-        const maxAttempts = typeof reconnect === 'object' && reconnect.maxAttempts ? reconnect.maxAttempts : 5
+        const maxAttempts = typeof reconnect === 'object' && reconnect.maxAttempts ? reconnect.maxAttempts : 5;
         if (reconnect && reconnectAttempts.current < maxAttempts) {
-          const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000
-            reconnectAttempts.current += 1
-            reconnectTimeout.current = window.setTimeout(() => {
-              destructor();
-              connect()
-            }, interval)
+          const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000;
+          reconnectAttempts.current += 1;
+          reconnectTimeout.current = window.setTimeout(() => {
+            destructor();
+            connect();
+          }, interval);
         } else {
           destructor();
         }
 
-        setError(new Error(`EventSource failed\n\nsource state:${source.readyState}\nCLOSED: ${source.CLOSED}\nCONNECTING: ${source.CONNECTING}\nOPEN: ${source.OPEN}`));
-      }
+        setError(
+          new Error(
+            `EventSource failed\n\nsource state:${source.readyState}\nCLOSED: ${source.CLOSED}\nCONNECTING: ${source.CONNECTING}\nOPEN: ${source.OPEN}`,
+          ),
+        );
+      };
 
       const destructor = () => {
-        sseManager.removeEventListener(url, eventName, handleMessage)
-        source.removeEventListener('open', handleOpen)
-        source.removeEventListener('error', handleError)
-        sseManager.releaseConnection(url)
-      }
+        sseManager.removeEventListener(url, eventName, handleMessage);
+        source.removeEventListener('open', handleOpen);
+        source.removeEventListener('error', handleError);
+        sseManager.releaseConnection(url);
+      };
 
-      sseManager.addEventListener(url, eventName, handleMessage)
-      source.addEventListener('open', handleOpen)
-      source.addEventListener('error', handleError)
+      sseManager.addEventListener(url, eventName, handleMessage);
+      source.addEventListener('open', handleOpen);
+      source.addEventListener('error', handleError);
 
       return destructor;
-    }
+    };
 
     const cleanup = connect();
 
     return () => {
       if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current)
+        clearTimeout(reconnectTimeout.current);
       }
       cleanup();
-    }
-  }, [url, eventName, reconnect])
+    };
+  }, [url, eventName, reconnect]);
 
-  return { data, error, lastEventId, close, connectionState }
+  return { data, error, lastEventId, close, connectionState };
 }

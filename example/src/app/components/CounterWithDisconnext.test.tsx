@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
 import '@testing-library/jest-dom';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { useSSE } from 'use-next-sse';
+
+import React, { useState } from 'react';
+
 import SSEExample from './CounterWithDisconnect';
 
 jest.mock('use-next-sse');

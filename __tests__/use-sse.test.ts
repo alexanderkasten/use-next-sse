@@ -1,4 +1,5 @@
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
+
 import { useSSE } from '../src/client/use-sse';
 
 describe('useSSE', () => {
@@ -57,7 +58,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -74,7 +75,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
 
     await act(async () => {
-      const openHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'open')[1];
+      const openHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'open')[1];
       openHandler(new Event('open'));
     });
 
@@ -93,7 +94,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -105,16 +106,15 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: true }));
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
       expect(EventSource).toHaveBeenCalledTimes(1);
       jest.advanceTimersByTime(1000);
     });
 
-
     await act(async () => {
-      const openHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'open')[1];
+      const openHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'open')[1];
       openHandler(new Event('open'));
     });
 
@@ -129,7 +129,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: true }));
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
       expect(EventSource).toHaveBeenCalledTimes(1);
@@ -138,7 +138,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
 
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
@@ -149,7 +149,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
 
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
@@ -159,7 +159,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
 
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
@@ -170,7 +170,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
 
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
@@ -179,7 +179,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
 
       errorHandler(new Event('error'));
 
@@ -189,16 +189,17 @@ describe('useSSE', () => {
       expect(EventSource).toHaveBeenCalledTimes(6); // No more attempts after maxAttempts
     });
 
-
     jest.useRealTimers();
   });
 
   test('does not reconnect when maxAttempts is reached', async () => {
     jest.useFakeTimers();
-    const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: { interval: 1000, maxAttempts: 2 } }));
+    const { result } = renderHook(() =>
+      useSSE({ url: 'https://example.com/sse', reconnect: { interval: 1000, maxAttempts: 2 } }),
+    );
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
 
       expect(result.current.connectionState).toBe('connecting');
@@ -206,7 +207,7 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
 
       // jest.advanceTimersByTime(1000);
@@ -214,14 +215,14 @@ describe('useSSE', () => {
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
 
       expect(EventSource).toHaveBeenCalledTimes(5);
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
       expect(EventSource).toHaveBeenCalledTimes(7);
     });
@@ -234,10 +235,12 @@ describe('useSSE', () => {
 
   test.skip('resets reconnect attempts after successful connection', async () => {
     jest.useFakeTimers();
-    const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: { interval: 1000, maxAttempts: 2 } }));
+    const { result } = renderHook(() =>
+      useSSE({ url: 'https://example.com/sse', reconnect: { interval: 1000, maxAttempts: 2 } }),
+    );
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -249,14 +252,14 @@ describe('useSSE', () => {
     expect(EventSource).toHaveBeenCalledTimes(3);
 
     await act(async () => {
-      const openHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'open')[1];
+      const openHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'open')[1];
       openHandler(new Event('open'));
     });
 
     expect(result.current.connectionState).toBe('open');
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -277,10 +280,12 @@ describe('useSSE', () => {
 
   test.skip('reconnects with specified interval and maxAttempts', async () => {
     jest.useFakeTimers();
-    const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: { interval: 2000, maxAttempts: 3 } }));
+    const { result } = renderHook(() =>
+      useSSE({ url: 'https://example.com/sse', reconnect: { interval: 2000, maxAttempts: 3 } }),
+    );
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -303,7 +308,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: false }));
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'error')[1];
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
     });
 
@@ -311,5 +316,3 @@ describe('useSSE', () => {
     expect(EventSource).toHaveBeenCalledTimes(1);
   });
 });
-
-

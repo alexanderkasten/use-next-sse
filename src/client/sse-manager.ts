@@ -1,7 +1,8 @@
 type Listener = (event: MessageEvent) => void;
 
 class SSEManager {
-  private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, Set<Listener>> }> = new Map();
+  private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, Set<Listener>> }> =
+    new Map();
 
   getConnection(url: string): EventSource {
     let connection = this.connections.get(url);
@@ -32,7 +33,7 @@ class SSEManager {
         connection.listeners.set(eventName, new Set());
         connection.source.addEventListener(eventName, (event) => {
           const listeners = connection.listeners.get(eventName);
-          listeners?.forEach(listener => listener(event));
+          listeners?.forEach((listener) => listener(event));
         });
       }
       connection.listeners.get(eventName)!.add(listener);
@@ -54,4 +55,3 @@ class SSEManager {
 }
 
 export const sseManager = new SSEManager();
-

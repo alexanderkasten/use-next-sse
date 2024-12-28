@@ -1,4 +1,5 @@
 import React from 'react';
+
 import CounterWithDisconnect from '../components/CounterWithDisconnect';
 
 const MinimalPage: React.FC = () => {
