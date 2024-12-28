@@ -8,6 +8,7 @@ export default function Home() {
         <nav>
           <ul>
             <li><Link href="/minimal">Minimal</Link></li>
+            <li><Link href="/minimal-reconnect">Minimal Reconnect</Link></li>
             <li><Link href="/even-odd">Even Odd</Link></li>
             <li><Link href="/advanced">Disconnect</Link></li>
           </ul>

@@ -114,7 +114,8 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
       const source = sseManager.getConnection(url)
 
       const handleOpen = () => {
-        setConnectionState('open')
+        setConnectionState('open');
+        reconnectAttempts.current = 0;
       }
 
       const handleMessage = (event: MessageEvent) => {
@@ -128,33 +129,35 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
         }
       }
 
-      sseManager.addEventListener(url, eventName, handleMessage)
-      source.addEventListener('open', handleOpen)
-
       const handleError = (event: Event) => {
-        setError(new Error('EventSource failed'));
         setConnectionState('closed');
-        if (reconnect) {
+        const maxAttempts = typeof reconnect === 'object' && reconnect.maxAttempts ? reconnect.maxAttempts : 5
+        if (reconnect && reconnectAttempts.current < maxAttempts) {
           const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000
-          const maxAttempts = typeof reconnect === 'object' && reconnect.maxAttempts ? reconnect.maxAttempts : 5
-          if (reconnectAttempts.current < maxAttempts) {
             reconnectAttempts.current += 1
             reconnectTimeout.current = setTimeout(() => {
-              sseManager.releaseConnection(url)
+              destructor();
               connect()
             }, interval)
-          }
+        } else {
+          destructor();
         }
+
+        setError(new Error(`EventSource failed\n\nsource state:${source.readyState}\nCLOSED: ${source.CLOSED}\nCONNECTING: ${source.CONNECTING}\nOPEN: ${source.OPEN}`));
       }
 
-      source.addEventListener('error', handleError)
-
-      return () => {
+      const destructor = () => {
         sseManager.removeEventListener(url, eventName, handleMessage)
         source.removeEventListener('open', handleOpen)
         source.removeEventListener('error', handleError)
         sseManager.releaseConnection(url)
       }
+
+      sseManager.addEventListener(url, eventName, handleMessage)
+      source.addEventListener('open', handleOpen)
+      source.addEventListener('error', handleError)
+
+      return destructor;
     }
 
     const cleanup = connect();

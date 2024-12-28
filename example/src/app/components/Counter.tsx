@@ -2,8 +2,8 @@
 
 import { useSSE } from 'use-next-sse';
 
-export default function Counter() {
-  const { data, error } = useSSE({url: '/api/sse', eventName: 'counter'});
+export default function Counter(props: {reconnect?: Parameters<typeof useSSE>[0]['reconnect']}) {
+  const { data, error } = useSSE({url: '/api/sse', eventName: 'counter', reconnect: props.reconnect});
 
   if (error) {
     console.error('Error:', error);

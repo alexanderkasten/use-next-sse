@@ -1,7 +1,6 @@
 import { createSSEHandler } from 'use-next-sse';
 export const dynamic = 'force-dynamic';
 
-
 export const GET = createSSEHandler((send, close) => {
   let count = 0
   const interval = setInterval(() => {
@@ -11,8 +10,8 @@ export const GET = createSSEHandler((send, close) => {
       send({ message: `Milestone reached: ${count}` }, 'milestone');
     }
 
-    // End the connection after 60 seconds (optional)
-    if (count >= 60) {
+    // End the connection after 20 seconds (optional)
+    if (count >= 20) {
       clearInterval(interval)
       send({ message: 'SSE-Connection closing' }, 'close')
       close()
