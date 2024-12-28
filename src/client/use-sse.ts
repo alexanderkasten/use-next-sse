@@ -98,7 +98,7 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
   const [lastEventId, setLastEventId] = useState<string | null>(null)
   const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'closed'>('connecting')
   const reconnectAttempts = useRef(0)
-  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null)
+  const reconnectTimeout = useRef<number | null>(null)
 
   const close = useCallback(() => {
     if (reconnectTimeout.current) {
