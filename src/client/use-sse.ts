@@ -101,14 +101,15 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
   const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'closed'>('connecting');
   const reconnectAttempts = useRef(0);
   const reconnectTimeout = useRef<number | null>(null);
+  const cleanupRef = useRef<() => void>(() => {});
 
   const close = useCallback(() => {
     if (reconnectTimeout.current) {
       clearTimeout(reconnectTimeout.current);
     }
-    sseManager.releaseConnection(url);
+    cleanupRef.current();
     setConnectionState('closed');
-  }, [url]);
+  }, [cleanupRef.current]);
 
   useEffect(() => {
     const connect = () => {
@@ -167,6 +168,7 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
     };
 
     const cleanup = connect();
+    cleanupRef.current = cleanup;
 
     return () => {
       if (reconnectTimeout.current) {
