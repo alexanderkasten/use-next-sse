@@ -16,7 +16,7 @@ export default function Counter(props: { reconnect?: Parameters<typeof useSSE>[0
   if (error)
     return (
       <div>
-        Error: <pre>{error.message}</pre>
+        Error: <pre data-testid="error-message">{error.message}</pre>
         <p>Connection State: {connectionState}</p>
       </div>
     );
