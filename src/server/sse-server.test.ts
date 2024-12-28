@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 import { createSSEHandler } from './sse-server';
 
@@ -13,6 +13,7 @@ describe('createSSEHandler', () => {
     };
 
     mockRequest = {
+      headers: new Headers(),
       signal: mockSignal,
     } as unknown as NextRequest;
 

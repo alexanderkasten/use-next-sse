@@ -1,7 +1,11 @@
 import { act, renderHook } from '@testing-library/react';
 
+import { sseManager } from '../src/client/sse-manager';
 import { useSSE } from '../src/client/use-sse';
 
+// Adjust the import path as necessary
+
+jest.mock('../src/client/sse-manager');
 describe('useSSE', () => {
   let mockEventSource: any;
 
@@ -12,29 +16,38 @@ describe('useSSE', () => {
       close: jest.fn(),
     };
 
+    sseManager.getConnection = jest.fn(() => mockEventSource);
+    sseManager.releaseConnection = jest.fn();
+    sseManager.addEventListener = jest.fn();
+    sseManager.removeEventListener = jest.fn();
+
     (global as any).EventSource = jest.fn(() => mockEventSource);
   });
 
   test('initializes EventSource with the provided URL', () => {
     renderHook(() => useSSE({ url: 'https://example.com/sse' }));
-    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: false });
+    expect(sseManager.getConnection).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: false });
   });
 
   test('initializes EventSource with the provided URL and credentials', () => {
     renderHook(() => useSSE({ url: 'https://example.com/sse', withCredentials: true }));
-    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: true });
+    expect(sseManager.getConnection).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: true });
   });
 
   test('listens for specific event when eventName is provided', () => {
     renderHook(() => useSSE({ url: 'https://example.com/sse', eventName: 'testEvent' }));
-    expect(mockEventSource.addEventListener).toHaveBeenCalledWith('testEvent', expect.any(Function));
+    expect(sseManager.addEventListener).toHaveBeenCalledWith(
+      'https://example.com/sse',
+      'testEvent',
+      expect.any(Function),
+    );
   });
 
   test('updates data when message is received', async () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
 
     await act(async () => {
-      const messageHandler = mockEventSource.addEventListener.mock.calls[0][1];
+      const messageHandler = (sseManager as any).addEventListener.mock.calls[0][2];
       messageHandler({ data: JSON.stringify({ test: 'data' }) });
     });
 
@@ -45,7 +58,7 @@ describe('useSSE', () => {
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
 
     await act(async () => {
-      const messageHandler = mockEventSource.addEventListener.mock.calls[0][1];
+      const messageHandler = (sseManager as any).addEventListener.mock.calls[0][2];
       messageHandler({ data: 'invalid JSON' });
     });
 
@@ -56,7 +69,7 @@ describe('useSSE', () => {
   test('closes EventSource on unmount', () => {
     const { unmount } = renderHook(() => useSSE({ url: 'https://example.com/sse' }));
     unmount();
-    expect(mockEventSource.close).toHaveBeenCalled();
+    expect(sseManager.releaseConnection).toHaveBeenCalled();
   });
 
   test('sets error when EventSource fails', async () => {
@@ -114,7 +127,7 @@ describe('useSSE', () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
-      expect(EventSource).toHaveBeenCalledTimes(1);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
       jest.advanceTimersByTime(1000);
     });
 
@@ -124,7 +137,7 @@ describe('useSSE', () => {
     });
 
     expect(result.current.connectionState).toBe('open');
-    expect(EventSource).toHaveBeenCalledTimes(2);
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(2);
 
     jest.useRealTimers();
   });
@@ -137,7 +150,7 @@ describe('useSSE', () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
-      expect(EventSource).toHaveBeenCalledTimes(1);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
 
       jest.advanceTimersByTime(1000);
     });
@@ -148,7 +161,7 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
 
-      expect(EventSource).toHaveBeenCalledTimes(2);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(2);
 
       jest.advanceTimersByTime(1000);
     });
@@ -159,7 +172,7 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
 
-      expect(EventSource).toHaveBeenCalledTimes(3);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(3);
       jest.advanceTimersByTime(1000);
     });
 
@@ -169,7 +182,7 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
 
-      expect(EventSource).toHaveBeenCalledTimes(4);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(4);
 
       jest.advanceTimersByTime(1000);
     });
@@ -180,7 +193,7 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
 
-      expect(EventSource).toHaveBeenCalledTimes(5);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(5);
     });
 
     await act(async () => {
@@ -191,7 +204,7 @@ describe('useSSE', () => {
       jest.advanceTimersByTime(1000);
       expect(result.current.connectionState).toBe('closed');
 
-      expect(EventSource).toHaveBeenCalledTimes(6); // No more attempts after maxAttempts
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(6); // No more attempts after maxAttempts
     });
 
     jest.useRealTimers();
@@ -208,7 +221,7 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
 
       expect(result.current.connectionState).toBe('connecting');
-      expect(EventSource).toHaveBeenCalledTimes(1);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
@@ -216,24 +229,24 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
 
       // jest.advanceTimersByTime(1000);
-      expect(EventSource).toHaveBeenCalledTimes(3);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(3);
     });
 
     await act(async () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
 
-      expect(EventSource).toHaveBeenCalledTimes(5);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(5);
     });
 
     await act(async () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
-      expect(EventSource).toHaveBeenCalledTimes(7);
+      expect(sseManager.getConnection).toHaveBeenCalledTimes(7);
     });
 
     jest.advanceTimersByTime(1000);
-    expect(EventSource).toHaveBeenCalledTimes(9); // No more attempts after maxAttempts
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(9); // No more attempts after maxAttempts
 
     jest.useRealTimers();
   });
@@ -318,6 +331,6 @@ describe('useSSE', () => {
     });
 
     expect(result.current.connectionState).toBe('closed');
-    expect(EventSource).toHaveBeenCalledTimes(1);
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
   });
 });
