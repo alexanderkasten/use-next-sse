@@ -35,6 +35,9 @@ export default function SSEExample() {
   });
 
   const handleConnect = () => {
+    counter.connect();
+    milestone.connect();
+    closeMessage.connect();
     setIsConnected(true);
   };
 
