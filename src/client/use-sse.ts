@@ -99,7 +99,12 @@ interface SSEResult<T> {
  *   }
  * }, [data]);
  */
-export function useSSE<T = any>({ url, eventName = 'message', reconnect = false, withCredentials = false }: SSEOptions): SSEResult<T> {
+export function useSSE<T = any>({
+  url,
+  eventName = 'message',
+  reconnect = false,
+  withCredentials = false,
+}: SSEOptions): SSEResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [lastEventId, setLastEventId] = useState<string | null>(null);

@@ -5,7 +5,6 @@ import { useSSE } from 'use-next-sse';
 import { useState } from 'react';
 
 export default function SSEExample() {
-
   const { data: allData, error: allError } = useSSE({ url: '/api/even-odd' });
   const { data: evenData, error: evenError } = useSSE({ url: '/api/even-odd', eventName: 'even' });
   const { data: oddData, error: oddError } = useSSE({ url: '/api/even-odd', eventName: 'odd' });
