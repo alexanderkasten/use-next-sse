@@ -1,52 +1,52 @@
-'use client'
+'use client';
 
 import { useSSE } from 'use-next-sse';
 
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 interface CounterData {
-  count: number
+  count: number;
 }
 
 interface MilestoneData {
-  message: string
+  message: string;
 }
 
 interface CloseData {
-  message: string
+  message: string;
 }
 
 export default function SSEExample() {
-  const [isConnected, setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(false);
 
   const counter = useSSE<CounterData>({
     url: '/api/sse',
-    eventName: 'counter'
-  })
+    eventName: 'counter',
+  });
 
   const milestone = useSSE<MilestoneData>({
     url: '/api/sse-second-route',
-    eventName: 'milestone'
-  })
+    eventName: 'milestone',
+  });
 
   const closeMessage = useSSE<CloseData>({
     url: '/api/sse',
-    eventName: 'close'
-  })
+    eventName: 'close',
+  });
 
   const handleConnect = () => {
-    setIsConnected(true)
-  }
+    setIsConnected(true);
+  };
 
   const handleDisconnect = () => {
-    counter.close()
-    milestone.close()
-    closeMessage.close()
-    setIsConnected(false)
-  }
+    counter.close();
+    milestone.close();
+    closeMessage.close();
+    setIsConnected(false);
+  };
 
   return (
-    <div className="p-4" data-testid='test'>
+    <div className="p-4" data-testid="test">
       <h1 className="text-4xl font-bold mb-4">SSE Example with useSSE Hook</h1>
       {!isConnected ? (
         <button
@@ -76,7 +76,9 @@ export default function SSEExample() {
           {milestone.data && (
             <div>
               <h2 className="text-2xl font-semibold">Milestone</h2>
-              <p className="text-lg text-green-600" data-testid="milestone-message">{milestone.data.message}</p>
+              <p className="text-lg text-green-600" data-testid="milestone-message">
+                {milestone.data.message}
+              </p>
               <p className="text-sm text-gray-600">Last Event ID: {milestone.lastEventId}</p>
             </div>
           )}
@@ -84,7 +86,9 @@ export default function SSEExample() {
           {closeMessage.data && (
             <div>
               <h2 className="text-2xl font-semibold">Close Message</h2>
-              <p className="text-lg text-red-600" data-testid="close-message">{closeMessage.data.message}</p>
+              <p className="text-lg text-red-600" data-testid="close-message">
+                {closeMessage.data.message}
+              </p>
               <p className="text-sm text-gray-600">Last Event ID: {closeMessage.lastEventId}</p>
             </div>
           )}
@@ -96,6 +100,5 @@ export default function SSEExample() {
         </p>
       )}
     </div>
-  )
+  );
 }
-

@@ -1,7 +1,6 @@
-
 import { createSSEHandler } from 'use-next-sse';
-export const dynamic = 'force-dynamic';
 
+export const dynamic = 'force-dynamic';
 
 export const GET = createSSEHandler(async (send, close) => {
   let count = 0;
@@ -11,6 +10,7 @@ export const GET = createSSEHandler(async (send, close) => {
     } else {
       send({ count: count }, 'odd');
     }
+    send({ count: count });
     count++;
     if (count > 100) {
       clearInterval(interval);
@@ -18,4 +18,3 @@ export const GET = createSSEHandler(async (send, close) => {
     }
   }, 1000);
 });
-

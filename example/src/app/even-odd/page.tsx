@@ -1,4 +1,5 @@
 import React from 'react';
+
 import EvenOdd from '../components/EvenOdd';
 
 const MinimalPage: React.FC = () => {

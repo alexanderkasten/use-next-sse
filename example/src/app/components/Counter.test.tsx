@@ -1,7 +1,8 @@
-import React from 'react';
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { useSSE } from 'use-next-sse';
+
+import React from 'react';
 
 import Counter from './Counter';
 
@@ -18,7 +19,8 @@ describe('Counter', () => {
     const error = new Error('Test error');
     (useSSE as jest.Mock).mockReturnValue({ data: null, error });
     render(<Counter />);
-    expect(screen.getByText(`Error: ${error.message}`)).toBeInTheDocument();
+    expect(screen.getByTestId('error-message')).toBeInTheDocument();
+    expect(screen.getByTestId('error-message').textContent).toEqual(error.message);
   });
 
   it('renders count when data is available', () => {
