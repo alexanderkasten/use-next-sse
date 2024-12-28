@@ -2,9 +2,49 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { sseManager } from './sse-manager';
 
-export interface SSEOptions {
+/**
+ * Options for the useSSE hook.
+ * @typedef {Object} SSEOptions
+ * @property {string} url - The URL to connect to for SSE.
+ * @property {string} [eventName='message'] - The name of the event to listen for.
+ * @property {boolean | { interval?: number, maxAttempts?: number }} [reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
+ * @property {number} [reconnect.interval] - The interval in milliseconds to wait before reconnecting. Default `1000`ms.
+ * @property {number} [reconnect.maxAttempts] - The maximum number of reconnection attempts. Default `5`.
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse' });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', eventName: 'test' });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', reconnect: true });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', reconnect: { interval: 5000, maxAttempts: 10 } });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', eventName: 'test', reconnect: true });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', eventName: 'test', reconnect: { interval: 5000, maxAttempts: 10 } });
+ * @example
+ * const { data, error, lastEventId, close } = useSSE<{ message: string }>({ url: 'https://example.com/sse', reconnect: { interval: 5000, maxAttempts: 10 } });
+ */
+export type SSEOptions = {
   url: string
   eventName?: string
+  /**
+   * Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
+   * @type {boolean | { interval?: number, maxAttempts?: number }}
+   * @default false
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', reconnect: true });
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', reconnect: { interval: 5000, maxAttempts: 10 } });
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', reconnect: { interval: 5000, maxAttempts: 10 } });
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', eventName: 'test', reconnect: true });
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', eventName: 'test', reconnect: { interval: 5000, maxAttempts: 10 } });
+   * @example
+   * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', eventName: 'test', reconnect: true });
+   */
   reconnect?: boolean | { interval?: number, maxAttempts?: number }
 }
 
@@ -36,7 +76,7 @@ interface SSEResult<T> {
  * Hook to manage Server-Sent Events (SSE) connections.
  *
  * @template T - The type of the data expected from the SSE.
- * @param {SSEOptions} options - The options for the SSE connection.
+ * @param {SSEOptions} options - The options for the SSE connection. {@link SSEOptions}
  * @param {string} options.url - The URL to connect to for SSE.
  * @param {string} [options.eventName='message'] - The name of the event to listen for.
  * @param {boolean | { interval?: number, maxAttempts?: number }} [options.reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
