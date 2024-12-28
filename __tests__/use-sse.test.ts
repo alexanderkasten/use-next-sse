@@ -17,7 +17,12 @@ describe('useSSE', () => {
 
   test('initializes EventSource with the provided URL', () => {
     renderHook(() => useSSE({ url: 'https://example.com/sse' }));
-    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse');
+    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: false });
+  });
+
+  test('initializes EventSource with the provided URL and credentials', () => {
+    renderHook(() => useSSE({ url: 'https://example.com/sse', withCredentials: true }));
+    expect(EventSource).toHaveBeenCalledWith('https://example.com/sse', { withCredentials: true });
   });
 
   test('listens for specific event when eventName is provided', () => {
