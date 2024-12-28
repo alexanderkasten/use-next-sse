@@ -109,9 +109,9 @@ describe('useSSE', () => {
       errorHandler(new Event('error'));
       expect(result.current.connectionState).toBe('connecting');
       expect(EventSource).toHaveBeenCalledTimes(1);
+      jest.advanceTimersByTime(1000);
     });
 
-    jest.advanceTimersByTime(1000);
 
     await act(async () => {
       const openHandler = mockEventSource.addEventListener.mock.calls.find(call => call[0] === 'open')[1];
