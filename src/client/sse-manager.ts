@@ -4,10 +4,10 @@ class SSEManager {
   private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, Set<Listener>> }> =
     new Map();
 
-  getConnection(url: string): EventSource {
+  getConnection(url: string, init?: EventSourceInit): EventSource {
     let connection = this.connections.get(url);
     if (!connection) {
-      const source = new EventSource(url);
+      const source = new EventSource(url, init);
       connection = { source, refCount: 0, listeners: new Map() };
       this.connections.set(url, connection);
     }

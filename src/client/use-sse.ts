@@ -47,6 +47,10 @@ export type SSEOptions = {
    * const { data, error, lastEventId, close } = useSSE({ url: 'https://example.com/sse', eventName: 'test', reconnect: true });
    */
   reconnect?: boolean | { interval?: number; maxAttempts?: number };
+  /**
+   * Whether to include credentials in the request. Default `false`.
+   */
+  withCredentials?: boolean;
 };
 
 interface SSEResult<T> {
@@ -83,6 +87,7 @@ interface SSEResult<T> {
  * @param {boolean | { interval?: number, maxAttempts?: number }} [options.reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
  * @param {number} [options.reconnect.interval] - The interval in milliseconds to wait before reconnecting. Default `1000`ms.
  * @param {number} [options.reconnect.maxAttempts] - The maximum number of reconnection attempts. Default `5`.
+ * @param {boolean} [options.withCredentials=false] - Whether to include credentials in the request. Default `false`.
  * @returns {SSEResult<T>} The result of the SSE connection, including data, error, last event ID, and a close function. {@link SSEResult}
  *
  * @example
@@ -94,27 +99,32 @@ interface SSEResult<T> {
  *   }
  * }, [data]);
  */
-export function useSSE<T = any>({ url, eventName = 'message', reconnect = false }: SSEOptions): SSEResult<T> {
+export function useSSE<T = any>({
+  url,
+  eventName = 'message',
+  reconnect = false,
+  withCredentials = false,
+}: SSEOptions): SSEResult<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const [lastEventId, setLastEventId] = useState<string | null>(null);
   const [connectionState, setConnectionState] = useState<'connecting' | 'open' | 'closed'>('connecting');
   const reconnectAttempts = useRef(0);
   const reconnectTimeout = useRef<number | null>(null);
+  const cleanupRef = useRef<() => void>(() => {});
 
   const close = useCallback(() => {
     if (reconnectTimeout.current) {
       clearTimeout(reconnectTimeout.current);
     }
-    sseManager.releaseConnection(url);
+    cleanupRef.current();
     setConnectionState('closed');
-  }, [url]);
+  }, [cleanupRef.current]);
 
   useEffect(() => {
     const connect = () => {
       setConnectionState('connecting');
-      const source = sseManager.getConnection(url);
-
+      const source = sseManager.getConnection(url, { withCredentials });
       const handleOpen = () => {
         setConnectionState('open');
         reconnectAttempts.current = 0;
@@ -169,6 +179,7 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
     };
 
     const cleanup = connect();
+    cleanupRef.current = cleanup;
 
     return () => {
       if (reconnectTimeout.current) {
