@@ -1,20 +1,40 @@
 
 import { NextRequest } from 'next/server'
 
+/**
+ * A function that sends data to the client.
+ * @param data - The data to send to the client.
+ * @param eventName (optional) - The name of the event.
+ * @returns void
+ * @example
+ * send({ message: 'test' });
+ * send({ message: 'test' }, 'testEvent');
+ */
 type SendFunction = (data: any, eventName?: string) => void
 
+/**
+ * A function that handles the Server-Sent Events (SSE) connection.
+ * @param send - A function to send data to the client.
+ * @param close - A function to close the SSE connection.
+ * @returns void | Promise<void> | (() => void)
+ * The callback can return a cleanup function that will be called when the connection is closed.
+ */
 type SSECallback = (
   send: SendFunction,
+  /**
+   * A function to close the SSE connection.
+   * @returns void
+   * @example
+   * close();
+   */
   close: () => void
 ) => void | Promise<void> | (() => void)
 
 /**
  * Creates a Server-Sent Events (SSE) handler for Next.js.
  *
- * @param callback - A function that takes two arguments:
- *   - `send`: A function to send data to the client. It accepts two parameters:
- *     - `data`: The data to send to the client.
- *     - `eventName` (optional): The name of the event.
+ * @param callback - A function that handles the SSE connection. It takes two arguments: {@link SSECallback}
+ *   - `send`: A function to send data to the client. See {@link SendFunction}.
  *   - `close`: A function to close the SSE connection.
  *   The callback can return a cleanup function that will be called when the connection is closed.
  *
