@@ -135,7 +135,7 @@ export function useSSE<T = any>({ url, eventName = 'message', reconnect = false 
         if (reconnect && reconnectAttempts.current < maxAttempts) {
           const interval = typeof reconnect === 'object' && reconnect.interval ? reconnect.interval : 1000
             reconnectAttempts.current += 1
-            reconnectTimeout.current = setTimeout(() => {
+            reconnectTimeout.current = window.setTimeout(() => {
               destructor();
               connect()
             }, interval)
