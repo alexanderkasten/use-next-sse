@@ -4,7 +4,6 @@ import { sseManager } from './sse-manager';
 
 /**
  * Options for the useSSE hook.
- * @typedef {Object} SSEOptions
  * @property {string} url - The URL to connect to for SSE.
  * @property {string} [eventName='message'] - The name of the event to listen for.
  * @property {boolean | { interval?: number, maxAttempts?: number }} [reconnect] - Whether to automatically reconnect if the connection is lost. If an object, the interval and maxAttempts can be specified. Default `false`.
