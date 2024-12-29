@@ -33,8 +33,8 @@ type SSECallback = (
    * @example
    * { lastEventId: '12345' }
    */
-  context: {lastEventId: string | null}
-) => void | Promise<void> | (() => void);
+  context: { lastEventId: string | null },
+) => void | Promise<void> | (() => void) | Promise<() => void> | (() => Promise<void>);
 
 /**
  * Creates a Server-Sent Events (SSE) handler for Next.js.
@@ -44,6 +44,20 @@ type SSECallback = (
  *   - `close`: A function to close the SSE connection.
  *   - `context`: An object containing the last event ID received by the client. Not null if the client has been reconnected.
  *   The callback can return a cleanup function that will be called when the connection is closed.
+ *
+ * **HINT:**
+ * Be sure to **NOT** await long running operations in the callback, as this will block the response from being sent initially to the client. Instead wrap your long running operations in a async function to allow the response to be sent to the client first.
+ *
+ * @example
+  ```
+   export const GET = createSSEHandler((send, close) => {
+      const asyncStuff = async () => {
+        // async
+      };
+
+      asyncStuff();
+   });
+```
  *
  * @returns A function that handles the SSE request. This function takes a `NextRequest` object as an argument.
  *
@@ -63,7 +77,7 @@ export function createSSEHandler(callback: SSECallback) {
     let messageId = 0;
 
     const stream = new ReadableStream({
-      start(controller) {
+      async start(controller) {
         const send: SendFunction = (data: any, eventName?: string) => {
           if (!isClosed) {
             let message = `id: ${messageId}\n`;
@@ -86,7 +100,7 @@ export function createSSEHandler(callback: SSECallback) {
           }
         }
 
-        const result = callback(send, close, {lastEventId: request.headers.get('Last-Event-ID')});
+        const result = await callback(send, close, { lastEventId: request.headers.get('Last-Event-ID') });
         if (typeof result === 'function') {
           cleanup = result;
         }
