@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 /**
  * A function that sends data to the client.
@@ -10,13 +10,22 @@ import { NextRequest } from 'next/server';
  * send({ message: 'test' }, 'testEvent');
  */
 type SendFunction = (data: any, eventName?: string) => void;
-
+/**
+ * A function that cleans up resources when the connection is closed.
+ * @returns void | Promise<void>
+ * @example
+ * return () => {
+ *   console.log('Cleanup');
+ * };
+ */
+type Destructor = (() => void) | Promise<() => void> | (() => Promise<void>);
 /**
  * A function that handles the Server-Sent Events (SSE) connection.
  * @param send - A function to send data to the client.
  * @param close - A function to close the SSE connection.
  * @returns void | Promise<void> | (() => void)
  * The callback can return a cleanup function that will be called when the connection is closed.
+ * **HINT:** See also {@link Destructor}, the createSSEHandler {@link SSEOptions} and {@link SSECallback} context `onClose`.
  */
 type SSECallback = (
   send: SendFunction,
@@ -30,11 +39,20 @@ type SSECallback = (
   /**
    * An object containing the last event ID received by the client. Not null if the client has been reconnected.
    * @property lastEventId - The last event ID from the client.
+   * @property onClose - A function to set a cleanup function that will be called when the connection is closed. If the cleanup function is already set, a warning will be logged. The cleanup function set by the `onClose` function will be called even if the cleanup function returned by the callback is not called.
    * @example
    * { lastEventId: '12345' }
    */
-  context: { lastEventId: string | null },
-) => void | Promise<void> | (() => void) | Promise<() => void> | (() => Promise<void>);
+  context: { lastEventId: string | null; onClose: (destructor: Destructor) => void },
+) => void | Promise<void> | Destructor;
+
+/**
+ * An optional object to configure the Server-Sent Events (SSE) handler.
+ * @property onClose - A function that will be called when the connection is closed even if the SSECallback has not been called yet.
+ * @example
+ * { onClose: () => console.log('SSE connection has been closed and cleaned up.') }
+ */
+type SSEOptions = { onClose?: Destructor };
 
 /**
  * Creates a Server-Sent Events (SSE) handler for Next.js.
@@ -59,6 +77,8 @@ type SSECallback = (
    });
 ```
  *
+ * @param options - An optional object to configure the handler. {@link SSEOptions}
+ *  - `onClose`: A function that will be called when the connection is closed even if the SSECallback has not been called yet.
  * @returns A function that handles the SSE request. This function takes a `NextRequest` object as an argument.
  *
  * The returned function creates a `ReadableStream` to handle the SSE connection. It sets up the `send` and `close` functions,
@@ -69,15 +89,43 @@ type SSECallback = (
  * - `Cache-Control`: `no-cache, no-transform`
  * - `Connection`: `keep-alive`
  */
-export function createSSEHandler(callback: SSECallback) {
+export function createSSEHandler(callback: SSECallback, options?: SSEOptions) {
   return async function (request: NextRequest) {
     const encoder = new TextEncoder();
     let isClosed = false;
-    let cleanup: (() => void) | undefined;
+    let cleanup: Destructor | undefined = options?.onClose;
+    let cleanupSetBy = options?.onClose ? '`onClose` through createSSEHandler options' : '';
     let messageId = 0;
+    let controller: ReadableStreamDefaultController | undefined;
+
+    function onClose(destructor: Destructor) {
+      if (cleanup != null) {
+        if (!isClosed) {
+          logAlreadySetWarning(cleanupSetBy);
+        }
+      } else {
+        cleanup = destructor;
+        cleanupSetBy = '`onClose` through SSECallback context';
+      }
+    }
+
+    function close() {
+      if (!isClosed) {
+        isClosed = true;
+        controller?.close();
+        if (typeof cleanup === 'function') {
+          cleanup();
+        }
+      }
+    }
+
+    request.signal.addEventListener('abort', () => {
+      close();
+    });
 
     const stream = new ReadableStream({
-      async start(controller) {
+      async start(cntrl) {
+        controller = cntrl;
         const send: SendFunction = (data: any, eventName?: string) => {
           if (!isClosed) {
             let message = `id: ${messageId}\n`;
@@ -85,29 +133,21 @@ export function createSSEHandler(callback: SSECallback) {
               message += `event: ${eventName}\n`;
             }
             message += `data: ${JSON.stringify(data)}\n\n`;
-            controller.enqueue(encoder.encode(message));
+            cntrl.enqueue(encoder.encode(message));
             messageId++;
           }
         };
 
-        function close() {
-          if (!isClosed) {
-            isClosed = true;
-            controller.close();
-            if (typeof cleanup === 'function') {
-              cleanup();
+        const result = await callback(send, close, { lastEventId: request.headers.get('Last-Event-ID'), onClose });
+        if (typeof result === 'function') {
+          if (cleanup != null) {
+            if (!isClosed) {
+              logAlreadySetWarning(cleanupSetBy);
             }
+          } else {
+            cleanup = result;
           }
         }
-
-        const result = await callback(send, close, { lastEventId: request.headers.get('Last-Event-ID') });
-        if (typeof result === 'function') {
-          cleanup = result;
-        }
-
-        request.signal.addEventListener('abort', () => {
-          close();
-        });
       },
     });
 
@@ -119,4 +159,15 @@ export function createSSEHandler(callback: SSECallback) {
       },
     });
   };
+}
+
+let warningLogged = false;
+
+function logAlreadySetWarning(cleanupSetBy: string) {
+  if (!warningLogged) {
+    console.warn(
+      `[use-next-sse:createSSEHandler]:\tCleanup function already set by ${cleanupSetBy}. Ignoring new cleanup function.`,
+    );
+    warningLogged = true;
+  }
 }
