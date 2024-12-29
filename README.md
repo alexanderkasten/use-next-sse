@@ -79,7 +79,7 @@ When using the `createSSEHandler` function in the `use-next-sse` library, it is 
 ```typescript
 import { createSSEHandler } from 'use-next-sse';
 
-const handler = createSSEHandler((req, res) => {
+const handler = createSSEHandler((send, close) => {
   // Your SSE logic here
 
   // Return a destructor function
