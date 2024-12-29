@@ -1,6 +1,6 @@
 {
   "name": "use-next-sse",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A lightweight Server-Sent Events (SSE) library for Next.js, enabling real-time, unidirectional data streaming from server to client",
   "main": "dist/cjs/index.js",
   "types": "dist/index.d.ts",
