@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "next": "^14",
+    "next": "^14.2.25",
     "use-next-sse": "file://../"
   },
   "devDependencies": {
