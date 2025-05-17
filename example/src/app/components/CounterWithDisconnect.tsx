@@ -2,7 +2,7 @@
 
 import { useSSE } from "use-next-sse"
 import { useState } from "react"
-import ConnectionStatus from "./connection-status"
+import ConnectionStatus from "@/components/connection-status"
 import { Activity, Award, AlertCircle } from "lucide-react"
 
 interface CounterData {

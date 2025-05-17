@@ -1,7 +1,7 @@
 "use client"
 
 import { useSSE } from "use-next-sse"
-import ConnectionStatus from "./connection-status"
+import ConnectionStatus from "@/components/connection-status"
 
 export default function SSEExample() {
   const { data: allData, error: allError, connectionState: allConnectionState } = useSSE({ url: "/api/even-odd" })

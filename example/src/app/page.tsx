@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Activity, BarChart2, Layers, RefreshCw } from "lucide-react"
 
-export default function Page() {
+export default function Home() {
   const examples = [
     {
       title: "Minimal Example",
