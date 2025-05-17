@@ -6,9 +6,9 @@ use-next-sse is a lightweight and easy-to-use React hook library for implementin
 
 ## Installation
 
-```bash
+\`\`\`bash
 npm install use-next-sse
-```
+\`\`\`
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ npm install use-next-sse
 
 Create a new file `app/api/sse/route.ts` with the following content:
 
-```typescript
+\`\`\`typescript
 import { createSSEHandler } from 'use-next-sse';
 
 export const dynamic = 'force-dynamic';
@@ -30,13 +30,13 @@ export const GET = createSSEHandler((send, close) => {
     }
   }, 1000);
 });
-```
+\`\`\`
 
 ### Client-Side (React Component)
 
 Create a new file `app/components/Counter.tsx` with the following content:
 
-```typescript
+\`\`\`typescript
 'use client'
 
 import { useSSE } from 'use-next-sse';
@@ -49,13 +49,13 @@ export default function Counter() {
 
   return <div>Count: {data.count}</div>;
 }
-```
+\`\`\`
 
 ### Usage in a Page
 
 Use the `Counter` component in a page, for example in `app/page.tsx`:
 
-```typescript
+\`\`\`typescript
 import Counter from './components/Counter';
 
 export default function Home() {
@@ -66,7 +66,7 @@ export default function Home() {
     </main>
   );
 }
-```
+\`\`\`
 
 This example demonstrates a simple counter that updates every second using Server-Sent Events. The server sends updates for 10 seconds before closing the connection.
 
@@ -76,7 +76,7 @@ When using the `createSSEHandler` function in the `use-next-sse` library, it is 
 
 #### Example Usage
 
-```typescript
+\`\`\`typescript
 import { createSSEHandler } from 'use-next-sse';
 
 const handler = createSSEHandler((send, close) => {
@@ -90,13 +90,13 @@ const handler = createSSEHandler((send, close) => {
 });
 
 export default handler;
-```
+\`\`\`
 
 #### Global Example
 
 This Destructor will be called even though the handler callback is not called yet.
 
-```typescript
+\`\`\`typescript
 import { createSSEHandler } from 'use-next-sse';
 
 const handler = createSSEHandler(
@@ -112,13 +112,13 @@ const handler = createSSEHandler(
 );
 
 export default handler;
-```
+\`\`\`
 
 #### Context Example
 
 This Destructor will be called if the SSECallback call is not done yet.
 
-```typescript
+\`\`\`typescript
 import { createSSEHandler } from 'use-next-sse';
 
 const handler = createSSEHandler(async(send, close, { onClose }) => {
@@ -135,4 +135,4 @@ const handler = createSSEHandler(async(send, close, { onClose }) => {
 });
 
 export default handler;
-```
+\`\`\`

@@ -1,20 +1,20 @@
-import { createSSEHandler } from 'use-next-sse';
+import { createSSEHandler } from "use-next-sse"
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic"
 
 export const GET = createSSEHandler(async (send, close) => {
-  let count = 0;
+  let count = 0
   const interval = setInterval(() => {
     if (count % 2 === 0) {
-      send({ count: count }, 'even');
+      send({ count: count }, "even")
     } else {
-      send({ count: count }, 'odd');
+      send({ count: count }, "odd")
     }
-    send({ count: count });
-    count++;
+    send({ count: count })
+    count++
     if (count > 100) {
-      clearInterval(interval);
-      close();
+      clearInterval(interval)
+      close()
     }
-  }, 1000);
-});
+  }, 1000)
+})
