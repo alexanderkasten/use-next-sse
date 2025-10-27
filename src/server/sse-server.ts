@@ -90,7 +90,7 @@ type SSEOptions = { onClose?: Destructor };
  * - `Connection`: `keep-alive`
  */
 export function createSSEHandler(callback: SSECallback, options?: SSEOptions) {
-  return async function (request: NextRequest) {
+  return async function (request: NextRequest, context?: any) {
     const encoder = new TextEncoder();
     let isClosed = false;
     let cleanup: Destructor | undefined = options?.onClose;
