@@ -44,6 +44,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+          cache-dependency-path: ${{ matrix.example }}/package-lock.json
       - name: Install dependencies for ${{ matrix.example }}
         run: npm ci
         working-directory: ${{ matrix.example }}
