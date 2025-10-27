@@ -1,8 +1,8 @@
-# Example with Next.js 14
+# Example with Next.js 16
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-This example demonstrates the use of `use-next-sse` with **Next.js 14.2.33**.
+This example demonstrates the use of `use-next-sse` with **Next.js 16.0.0**.
 
 ## Getting Started
 
