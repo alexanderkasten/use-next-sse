@@ -178,6 +178,10 @@ export function useSSE<T = any>({
       return destructor;
     };
 
+    if (url === '') {
+      return;
+    }
+
     const cleanup = connect();
     cleanupRef.current = cleanup;
 
