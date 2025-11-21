@@ -179,6 +179,10 @@ export function useSSE<T = any>({
     };
 
     if (url === '') {
+      if (connectionState !== 'closed') {
+        close();
+      }
+
       return;
     }
 
