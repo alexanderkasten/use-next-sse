@@ -2,7 +2,7 @@
 
 import { useSSE } from 'use-next-sse';
 
-import React, { useState } from 'react';
+import React, { useImperativeHandle, useRef, useState } from 'react';
 
 interface CounterData {
   count: number;
@@ -16,9 +16,11 @@ interface CloseData {
   message: string;
 }
 
-export default function SSEExample() {
-  const [isConnected, setIsConnected] = useState(false);
+type SSEComponentHandle = {
+  disconnect: () => void;
+};
 
+const SSEComponent = React.forwardRef<SSEComponentHandle>((props, ref) => {
   const counter = useSSE<CounterData>({
     url: '/api/sse',
     eventName: 'counter',
@@ -34,14 +36,67 @@ export default function SSEExample() {
     eventName: 'close',
   });
 
+  useImperativeHandle(ref, () => {
+    return {
+      disconnect: () => {
+        counter.close();
+        milestone.close();
+        closeMessage.close();
+      },
+    };
+  }, []);
+
+  if (counter.error || milestone.error || closeMessage.error) {
+    return (
+      <p className="text-red-500 mt-4">
+        Error: {counter.error?.message || milestone.error?.message || closeMessage.error?.message}
+      </p>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div>
+        <h2 className="text-2xl font-semibold">Counter</h2>
+        <p className="text-lg">
+          Latest count: <span className="font-bold">{counter.data?.count ?? 'Waiting for data...'}</span>
+        </p>
+        <p className="text-sm text-gray-600">Last Event ID: {counter.lastEventId}</p>
+      </div>
+
+      {milestone.data && (
+        <div>
+          <h2 className="text-2xl font-semibold">Milestone</h2>
+          <p className="text-lg text-green-600" data-testid="milestone-message">
+            {milestone.data.message}
+          </p>
+          <p className="text-sm text-gray-600">Last Event ID: {milestone.lastEventId}</p>
+        </div>
+      )}
+
+      {closeMessage.data && (
+        <div>
+          <h2 className="text-2xl font-semibold">Close Message</h2>
+          <p className="text-lg text-red-600" data-testid="close-message">
+            {closeMessage.data.message}
+          </p>
+          <p className="text-sm text-gray-600">Last Event ID: {closeMessage.lastEventId}</p>
+        </div>
+      )}
+    </div>
+  );
+});
+
+export default function SSEExample() {
+  const [isConnected, setIsConnected] = useState(false);
+  const sseComponentRef = useRef<React.ComponentRef<typeof SSEComponent>>(null);
+
   const handleConnect = () => {
     setIsConnected(true);
   };
 
   const handleDisconnect = () => {
-    counter.close();
-    milestone.close();
-    closeMessage.close();
+    sseComponentRef.current?.disconnect();
     setIsConnected(false);
   };
 
@@ -56,48 +111,15 @@ export default function SSEExample() {
           Connect to SSE
         </button>
       ) : (
-        <button
-          onClick={handleDisconnect}
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Disconnect
-        </button>
-      )}
-      {isConnected && (
-        <div className="mt-4 space-y-4">
-          <div>
-            <h2 className="text-2xl font-semibold">Counter</h2>
-            <p className="text-lg">
-              Latest count: <span className="font-bold">{counter.data?.count ?? 'Waiting for data...'}</span>
-            </p>
-            <p className="text-sm text-gray-600">Last Event ID: {counter.lastEventId}</p>
-          </div>
-
-          {milestone.data && (
-            <div>
-              <h2 className="text-2xl font-semibold">Milestone</h2>
-              <p className="text-lg text-green-600" data-testid="milestone-message">
-                {milestone.data.message}
-              </p>
-              <p className="text-sm text-gray-600">Last Event ID: {milestone.lastEventId}</p>
-            </div>
-          )}
-
-          {closeMessage.data && (
-            <div>
-              <h2 className="text-2xl font-semibold">Close Message</h2>
-              <p className="text-lg text-red-600" data-testid="close-message">
-                {closeMessage.data.message}
-              </p>
-              <p className="text-sm text-gray-600">Last Event ID: {closeMessage.lastEventId}</p>
-            </div>
-          )}
-        </div>
-      )}
-      {(counter.error || milestone.error || closeMessage.error) && (
-        <p className="text-red-500 mt-4">
-          Error: {counter.error?.message || milestone.error?.message || closeMessage.error?.message}
-        </p>
+        <>
+          <button
+            onClick={handleDisconnect}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Disconnect
+          </button>
+          <SSEComponent ref={sseComponentRef} />
+        </>
       )}
     </div>
   );
