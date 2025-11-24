@@ -178,6 +178,14 @@ export function useSSE<T = any>({
       return destructor;
     };
 
+    if (url === '') {
+      if (connectionState !== 'closed') {
+        close();
+      }
+
+      return;
+    }
+
     const cleanup = connect();
     cleanupRef.current = cleanup;
 
