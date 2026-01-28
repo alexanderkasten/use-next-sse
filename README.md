@@ -572,7 +572,7 @@ export const GET = createSSEHandler((send, close, { lastEventId }) => {
 'use client';
 
 import { useSSE } from 'use-next-sse';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Message {
   id: string;
