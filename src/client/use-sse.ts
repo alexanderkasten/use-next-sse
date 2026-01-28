@@ -53,7 +53,18 @@ export type SSEOptions = {
   withCredentials?: boolean;
 };
 
-interface SSEResult<T> {
+/**
+ * The result object returned by the useSSE hook.
+ * @template T - The type of the data expected from the SSE.
+ * @property {T | null} data - The latest data received from the SSE connection, or null if no data has been received yet.
+ * @property {Error | null} error - The error object if an error occurred, or null if no error has occurred.
+ * @property {string | null} lastEventId - The ID of the last event received from the server, or null if no event has been received yet.
+ * @property {() => void} close - A function to manually close the SSE connection and clean up resources.
+ * @property {'connecting' | 'open' | 'closed'} connectionState - The current state of the SSE connection.
+ * @example
+ * const { data, error, lastEventId, close, connectionState }: SSEResult<MyDataType> = useSSE({ url: '/api/sse' });
+ */
+export interface SSEResult<T> {
   data: T | null;
   error: Error | null;
   lastEventId: string | null;

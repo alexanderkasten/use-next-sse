@@ -3,4 +3,4 @@ export { createSSEHandler } from './server/sse-server';
 
 // Client-side exports
 export { useSSE } from './client/use-sse';
-export type { SSEOptions } from './client/use-sse';
+export type { SSEOptions, SSEResult } from './client/use-sse';
