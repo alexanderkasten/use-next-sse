@@ -119,7 +119,11 @@ export function useSSE<T = any>({
     }
     cleanupRef.current();
     setConnectionState('closed');
-  }, [cleanupRef.current]);
+  }, []);
+
+  const reconnectEnabled = !!reconnect;
+  const reconnectInterval = typeof reconnect === 'object' ? reconnect.interval : undefined;
+  const reconnectMaxAttempts = typeof reconnect === 'object' ? reconnect.maxAttempts : undefined;
 
   useEffect(() => {
     const connect = () => {
@@ -195,7 +199,7 @@ export function useSSE<T = any>({
       }
       cleanup();
     };
-  }, [url, eventName, reconnect]);
+  }, [url, eventName, withCredentials, reconnectEnabled, reconnectInterval, reconnectMaxAttempts]);
 
   return { data, error, lastEventId, close, connectionState };
 }
