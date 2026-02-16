@@ -142,6 +142,32 @@ describe('useSSE', () => {
     jest.useRealTimers();
   });
 
+  test('releases connection before each reconnect attempt', async () => {
+    jest.useFakeTimers();
+    renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: true }));
+
+    await act(async () => {
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
+      errorHandler(new Event('error'));
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(sseManager.releaseConnection).toHaveBeenCalledWith('https://example.com/sse');
+    expect(sseManager.releaseConnection).toHaveBeenCalledTimes(1);
+
+    // second reconnect — grab the latest error handler, not the stale one
+    await act(async () => {
+      const errorCalls = mockEventSource.addEventListener.mock.calls.filter((call) => call[0] === 'error');
+      const errorHandler = errorCalls[errorCalls.length - 1][1];
+      errorHandler(new Event('error'));
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(sseManager.releaseConnection).toHaveBeenCalledTimes(2);
+
+    jest.useRealTimers();
+  });
+
   test('reconnects with default interval and maxAttempts', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() => useSSE({ url: 'https://example.com/sse', reconnect: true }));
