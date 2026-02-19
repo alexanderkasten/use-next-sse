@@ -718,39 +718,6 @@ export function MyComponent() {
 }
 ```
 
-## TypeScript Support
-
-The library is written in TypeScript and provides full type safety:
-
-```typescript
-import { useSSE, createSSEHandler, SSEOptions, SSEResult } from 'use-next-sse';
-
-// Define your data types
-interface UserActivity {
-  userId: string;
-  action: string;
-  timestamp: number;
-}
-
-// Type-safe client usage
-const { data, error }: SSEResult<UserActivity> = useSSE<UserActivity>({
-  url: '/api/activity',
-  eventName: 'user-activity'
-});
-
-// Type-safe server usage
-export const GET = createSSEHandler((send, close, context) => {
-  const activity: UserActivity = {
-    userId: '123',
-    action: 'login',
-    timestamp: Date.now()
-  };
-  
-  send(activity, 'user-activity');
-  // TypeScript ensures data matches UserActivity type
-});
-```
-
 ## Browser Compatibility
 
 This library uses the native `EventSource` API, which is supported in all modern browsers:
