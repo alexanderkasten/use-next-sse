@@ -242,37 +242,45 @@ describe('useSSE', () => {
       useSSE({ url: 'https://example.com/sse', reconnect: { interval: 1000, maxAttempts: 2 } }),
     );
 
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
+
+    // first error → schedules reconnect attempt 1
     await act(async () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
-
-      expect(result.current.connectionState).toBe('connecting');
-      expect(sseManager.getConnection).toHaveBeenCalledTimes(1);
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
-      errorHandler(new Event('error'));
-
-      // jest.advanceTimersByTime(1000);
-      expect(sseManager.getConnection).toHaveBeenCalledTimes(3);
+      jest.advanceTimersByTime(1000);
     });
 
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(2);
+
+    // second error → schedules reconnect attempt 2
     await act(async () => {
       const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
       errorHandler(new Event('error'));
-
-      expect(sseManager.getConnection).toHaveBeenCalledTimes(5);
     });
 
     await act(async () => {
-      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
-      errorHandler(new Event('error'));
-      expect(sseManager.getConnection).toHaveBeenCalledTimes(7);
+      jest.advanceTimersByTime(1000);
     });
 
-    jest.advanceTimersByTime(1000);
-    expect(sseManager.getConnection).toHaveBeenCalledTimes(9); // No more attempts after maxAttempts
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(3);
+
+    // third error → maxAttempts (2) reached, no more reconnects
+    await act(async () => {
+      const errorHandler = mockEventSource.addEventListener.mock.calls.find((call) => call[0] === 'error')[1];
+      errorHandler(new Event('error'));
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    // no additional getConnection call
+    expect(sseManager.getConnection).toHaveBeenCalledTimes(3);
+    expect(result.current.connectionState).toBe('closed');
 
     jest.useRealTimers();
   });
