@@ -1,8 +1,14 @@
 type Listener = (event: MessageEvent) => void;
 
 class SSEManager {
-  private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, Set<Listener>> }> =
-    new Map();
+  private connections: Map<
+    string,
+    {
+      source: EventSource;
+      refCount: number;
+      listeners: Map<string, { forwarder: (event: Event) => void; userListeners: Set<Listener> }>;
+    }
+  > = new Map();
 
   getConnection(url: string, init?: EventSourceInit): EventSource {
     let connection = this.connections.get(url);
@@ -30,23 +36,25 @@ class SSEManager {
     const connection = this.connections.get(url);
     if (connection) {
       if (!connection.listeners.has(eventName)) {
-        connection.listeners.set(eventName, new Set());
-        connection.source.addEventListener(eventName, (event) => {
-          const listeners = connection.listeners.get(eventName);
-          listeners?.forEach((listener) => listener(event));
-        });
+        const userListeners: Set<Listener> = new Set();
+        const forwarder = (event: Event) => {
+          userListeners.forEach((listener) => listener(event as MessageEvent));
+        };
+        connection.listeners.set(eventName, { forwarder, userListeners });
+        connection.source.addEventListener(eventName, forwarder);
       }
-      connection.listeners.get(eventName)!.add(listener);
+      connection.listeners.get(eventName)!.userListeners.add(listener);
     }
   }
 
   removeEventListener(url: string, eventName: string, listener: Listener) {
     const connection = this.connections.get(url);
     if (connection) {
-      const listeners = connection.listeners.get(eventName);
-      if (listeners) {
-        listeners.delete(listener);
-        if (listeners.size === 0) {
+      const entry = connection.listeners.get(eventName);
+      if (entry) {
+        entry.userListeners.delete(listener);
+        if (entry.userListeners.size === 0) {
+          connection.source.removeEventListener(eventName, entry.forwarder);
           connection.listeners.delete(eventName);
         }
       }
