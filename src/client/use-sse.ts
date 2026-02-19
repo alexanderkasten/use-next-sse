@@ -151,7 +151,8 @@ export function useSSE<T = any>({
             sseManager.removeEventListener(url, eventName, handleMessage);
             source.removeEventListener('open', handleOpen);
             source.removeEventListener('error', handleError);
-            connect();
+            sseManager.releaseConnection(url);
+            cleanupRef.current = connect();
           }, interval);
         } else {
           destructor();
@@ -193,7 +194,7 @@ export function useSSE<T = any>({
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current);
       }
-      cleanup();
+      cleanupRef.current();
     };
   }, [url, eventName, reconnect]);
 
