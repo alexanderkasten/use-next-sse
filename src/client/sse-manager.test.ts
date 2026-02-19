@@ -29,13 +29,14 @@ describe('SSEManager', () => {
       const listenerA = (e: MessageEvent) => received.push(`A:${e.data}`);
       sseManager.addEventListener(url, eventName, listenerA);
       expect(mockEventSource.addEventListener).toHaveBeenCalledTimes(1);
+      const forwarderA = mockEventSource.addEventListener.mock.calls[0][1];
 
       // Unsubscribe – should remove the native handler too
       sseManager.removeEventListener(url, eventName, listenerA);
       expect(mockEventSource.removeEventListener).toHaveBeenCalledTimes(1);
       expect(mockEventSource.removeEventListener).toHaveBeenCalledWith(
         eventName,
-        expect.any(Function),
+        forwarderA,
       );
 
       // Second subscribe – must attach exactly one new native handler
