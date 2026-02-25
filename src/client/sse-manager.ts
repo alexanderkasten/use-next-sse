@@ -1,7 +1,12 @@
 type Listener = (event: MessageEvent) => void;
 
+type ListenerEntry = {
+  forwarder: EventListener;
+  userListeners: Set<Listener>;
+};
+
 class SSEManager {
-  private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, Set<Listener>> }> =
+  private connections: Map<string, { source: EventSource; refCount: number; listeners: Map<string, ListenerEntry> }> =
     new Map();
 
   getConnection(url: string, init?: EventSourceInit): EventSource {
@@ -29,24 +34,28 @@ class SSEManager {
   addEventListener(url: string, eventName: string, listener: Listener) {
     const connection = this.connections.get(url);
     if (connection) {
-      if (!connection.listeners.has(eventName)) {
-        connection.listeners.set(eventName, new Set());
-        connection.source.addEventListener(eventName, (event) => {
-          const listeners = connection.listeners.get(eventName);
-          listeners?.forEach((listener) => listener(event));
-        });
+      let entry = connection.listeners.get(eventName);
+      if (!entry) {
+        const forwarder: EventListener = (event) => {
+          const entry = connection.listeners.get(eventName);
+          entry?.userListeners.forEach((listener) => listener(event as MessageEvent));
+        };
+        entry = { forwarder, userListeners: new Set() };
+        connection.listeners.set(eventName, entry);
+        connection.source.addEventListener(eventName, forwarder);
       }
-      connection.listeners.get(eventName)!.add(listener);
+      entry.userListeners.add(listener);
     }
   }
 
   removeEventListener(url: string, eventName: string, listener: Listener) {
     const connection = this.connections.get(url);
     if (connection) {
-      const listeners = connection.listeners.get(eventName);
-      if (listeners) {
-        listeners.delete(listener);
-        if (listeners.size === 0) {
+      const entry = connection.listeners.get(eventName);
+      if (entry) {
+        entry.userListeners.delete(listener);
+        if (entry.userListeners.size === 0) {
+          connection.source.removeEventListener(eventName, entry.forwarder);
           connection.listeners.delete(eventName);
         }
       }
